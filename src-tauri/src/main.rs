@@ -24,8 +24,7 @@ impl ContractWalletData {
 #[tauri::command]
 async fn fetch_data(path: String, key_path: String) -> Result<ContractWalletData, String> {
     let cpath: &Path = Path::new(path.leak());
-    let new_abi_path = format!("./{:?}_abi.json", cpath.file_name().unwrap());
-    let abi: &Path = Path::new(new_abi_path.leak());
+    let abi: &Path = Path::new("abi.json");
     let mut contract = Vyper::new(cpath, abi);
     contract.compile().map_err(|e| return e.to_string())?;
     contract.abi().map_err(|e| return e.to_string())?;
@@ -35,6 +34,8 @@ async fn fetch_data(path: String, key_path: String) -> Result<ContractWalletData
     let abifile = File::open(&abi).map_err(|e| e.to_string())?;
     let reader = BufReader::new(abifile);
     let abifile_json: Value = serde_json::from_reader(reader).map_err(|e| e.to_string())?;
+    //println!("{:?}", contract.bytecode.clone().unwrap());
+    println!("Back to TS!");
     Ok(ContractWalletData::new(
         keystore_json,
         abifile_json,
