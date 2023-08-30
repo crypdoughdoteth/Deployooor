@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { invoke } from '@tauri-apps/api/tauri';
+    import { fade } from 'svelte/transition';
 
+    let success: boolean; 
 	let prov: string;
 	let keys: string;
 	type Config = {
@@ -10,7 +12,11 @@
 
 	async function onSubmit(): Promise<void> {
         event?.preventDefault();
-        await invoke<Config>('set_config', { provider: prov, keystore: keys })
+        await invoke<Config>('set_config', { provider: prov, keystore: keys })			
+            .then((message) => {
+                success = true;
+                setTimeout(() => success = false, 3000);
+			})
             .catch((error) => console.error(error)
 		);
 	}
@@ -20,6 +26,12 @@
 	<a href="./" class="btn btn-ghost normal-case text-xl ">Home</a>
     <a href="/deploy" class="btn btn-ghost normal-case text-xl">Deploy</a>
 </div>
+{#if success === true}
+<div transition:fade class="alert alert-success">
+    <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+    <span>Settings Saved Successfully!</span>
+  </div>
+{/if}
 <div class="flex flex-col justify-center items-center h-screen min-h-screen">
 	<form on:submit={() => onSubmit()}>
 			<div class="form-control w-full max-w-xs mb-5">

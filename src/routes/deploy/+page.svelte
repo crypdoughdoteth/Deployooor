@@ -11,7 +11,8 @@
 		provider: string;
 		keystore: string;
 	};
-
+	let deploymentError: boolean;
+	let deploymentErrorMsg: unknown;
 	// I
 	let contractFile: string;
 	let password: string;
@@ -19,7 +20,6 @@
 	// O
 	let res: ReturnData;
 	let conf: Config;
-
 	let configFound: boolean; 
 	async function onSubmit(): Promise<void> {
 		event?.preventDefault();
@@ -45,7 +45,11 @@
 				console.log(message);
 				res = message;
 			})
-			.catch((error) => console.error(error));
+			.catch((error) => {
+				deploymentError = true;	
+				deploymentErrorMsg = error;
+				console.error(error)
+			});
 		// console.log(console.log("********", res));
 		let ks = res.keystore;
 		let bytecode = res.initcode;
@@ -54,9 +58,16 @@
 		const decryptedWallet = (await ethers.Wallet.fromEncryptedJson(keys, password)).connect(web3);
 		const abi = new ethers.Interface(JSON.stringify(res.abi));
 		const contract = new ethers.ContractFactory(abi, { object: bytecode }, decryptedWallet);
-		let tx = await contract.deploy([args]);
-		console.log(await tx.getAddress());
-		await tx.waitForDeployment();
+		try {
+			let tx = await contract.deploy([args]);
+			await tx.waitForDeployment();
+			console.log(await tx.getAddress());
+			deploymentError = false; 
+		} catch(e) {
+			deploymentError = true;
+			deploymentErrorMsg = e;
+			setTimeout(() => deploymentError = false, 3000);
+		}		
 		configFound = true; 
 	}
 </script>
@@ -114,6 +125,17 @@
 					<div class="alert alert-error mt-10 mb-10">
 						<svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
 						<span>Error! Config Not Found.</span>
+					  </div>
+					{/if}
+					{#if deploymentError === true}
+					<div class="alert alert-error mt-10 mb-10">
+						<svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+						<span>Error! {deploymentErrorMsg} </span>
+					  </div>
+					{:else if deploymentError === false}
+					<div class="alert alert-success">
+						<svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+						<span>Contract Deployed Successfully!</span>
 					  </div>
 					{/if}
 					<button type="submit" class="btn btn-primary rounded-xl border-8 mt-5">DEPLOY</button>
