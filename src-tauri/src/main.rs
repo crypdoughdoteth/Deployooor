@@ -7,7 +7,6 @@ use vyper_rs::vyper::Vyper;
 
 #[derive(Serialize, Deserialize)]
 struct ContractWalletData {
-    keystore: Value,
     abi: Value,
     initcode: String,
 }
@@ -19,9 +18,8 @@ struct Config {
 }
 
 impl ContractWalletData {
-    fn new(keystore: Value, abi: Value, initcode: String) -> ContractWalletData {
+    fn new( abi: Value, initcode: String) -> ContractWalletData {
         Self {
-            keystore,
             abi,
             initcode,
         }
@@ -29,25 +27,30 @@ impl ContractWalletData {
 }
 
 #[tauri::command]
-async fn fetch_data(path: String, key_path: String) -> Result<ContractWalletData, String> {
+async fn fetch_data(path: String) -> Result<ContractWalletData, String> {
     let cpath: &Path = Path::new(path.leak());
     let abi: &Path = Path::new("abi.json");
     let mut contract = Vyper::new(cpath, abi);
     contract.compile().map_err(|e| return e.to_string())?;
     contract.abi().map_err(|e| return e.to_string())?;
-    let keyfile = File::open(Path::new(&key_path)).map_err(|e| e.to_string())?;
-    let reader = BufReader::new(keyfile);
-    let keystore_json: Value = serde_json::from_reader(reader).map_err(|e| e.to_string())?;
+    
     let abifile = File::open(&abi).map_err(|e| e.to_string())?;
     let reader = BufReader::new(abifile);
     let abifile_json: Value = serde_json::from_reader(reader).map_err(|e| e.to_string())?;
     //println!("{:?}", contract.bytecode.clone().unwrap());
     println!("Back to TS!");
     Ok(ContractWalletData::new(
-        keystore_json,
         abifile_json,
         contract.bytecode.unwrap(),
     ))
+}
+
+#[tauri::command]
+async fn get_keys(key_path: String) -> Result<Value, String> {
+    let keyfile = File::open(Path::new(&key_path)).map_err(|e| e.to_string())?;
+    let reader = BufReader::new(keyfile);
+    let keystore_json: Value = serde_json::from_reader(reader).map_err(|e| e.to_string())?;
+    Ok(keystore_json)
 }
 
 #[tauri::command]
@@ -69,7 +72,7 @@ async fn get_config() -> Result<Config, String> {
 
 fn main() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![fetch_data, set_config, get_config])
+        .invoke_handler(tauri::generate_handler![fetch_data, set_config, get_config, get_keys])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
