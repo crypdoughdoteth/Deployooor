@@ -25,6 +25,7 @@
 <div class="navbar rounded-xl place-content-center mt-5">
 	<a href="./" class="btn btn-ghost normal-case text-xl ">Home</a>
     <a href="/deploy" class="btn btn-ghost normal-case text-xl">Deploy</a>
+	<a href="/deployments" class="btn btn-ghost normal-case text-xl">Deployments</a>
 </div>
 {#if success === true}
 <div transition:fade class="alert alert-success">

@@ -14,6 +14,7 @@
 
 	$: getKeys(password);
 
+	let evmVersion: string;
 	let addy: string;
 	let bal: string;
 	let network: string; 
@@ -30,6 +31,7 @@
 	let web3: JsonRpcProvider;
 	let decryptedWallet: Wallet | HDNodeWallet;
 	let contractAddress: string;
+	let success: boolean; 
 	async function getKeys(pass: string): Promise<Wallet | HDNodeWallet> {
 		await invoke<JSON>('get_keys', { keyPath: conf.keystore })
 			.then(async (message) => {
@@ -47,9 +49,11 @@
 		// callback to Rust code to
 		// I.   Compile Vyper file
 		// II.  Update provider
-
+		console.log(evmVersion);
 		console.log('calling rust code ..... ');
-		await invoke<ReturnData>('fetch_data', { path: contractFile, keyPath: conf.keystore })
+		
+		if (evmVersion !== undefined ) {
+			await invoke<ReturnData>('compile_version', { path: contractFile, keyPath: conf.keystore })
 			.then((message) => {
 				console.log(message);
 				res = message;
@@ -59,6 +63,20 @@
 				deploymentErrorMsg = error;
 				console.error(error);
 			});
+		} else {
+			await invoke<ReturnData>('fetch_data', { path: contractFile })
+			.then((message) => {
+				console.log(message);
+				res = message;
+			})
+			.catch((error) => {
+				deploymentError = true;
+				deploymentErrorMsg = error;
+				console.error(error);
+				setTimeout(() => (deploymentError = false), 12000);
+
+			});
+		}
 			await invoke<JSON>('get_keys', { keyPath: conf.keystore })
 				.then(async (message) => {
 						const keys = JSON.stringify(message);
@@ -70,18 +88,19 @@
 		let bytecode = res.initcode;
 		const abi = new ethers.Interface(JSON.stringify(res.abi));
 		const contract = new ethers.ContractFactory(abi, { object: bytecode }, decryptedWallet);
+		let tx; 
 		try {
-			let tx = await contract.deploy([args]);
+			tx = await contract.deploy([args]);
 			await tx.waitForDeployment();
 			contractAddress = await tx.getAddress();
 			console.log(contractAddress);
-			deploymentError = false;
+			success = true;
 		} catch (e) {
 			deploymentError = true;
 			deploymentErrorMsg = e;
-			setTimeout(() => (deploymentError = false), 3000);
+			setTimeout(() => (deploymentError = false), 12000);
 		}
-		configFound = true;
+		//let gas = formatEther(tx.deploymentTransaction()!.gasPrice);
 	}
 
 	onMount(async () => {
@@ -91,6 +110,7 @@
 				conf = message;
 				web3 = new ethers.JsonRpcProvider(conf.provider);
 				network = (await web3.getNetwork()).name;
+				configFound = true;
 			})
 			.catch((error) => {
 				configFound = false;
@@ -99,25 +119,47 @@
 	});
 </script>
 
-<div class="navbar rounded-xl place-content-center mt-5">
+<div class="navbar rounded-xl place-content-center mt-5 mb-10">
 	<a href="./" class="btn btn-ghost normal-case text-xl">Home</a>
 	<a href="/settings" class="btn btn-ghost normal-case text-xl">Settings</a>
+	<a href="/deployments" class="btn btn-ghost normal-case text-xl">Deployments</a>
 </div>
 <div class="flex flex-col justify-center items-center h-screen min-h-screen">
 	
-	<div class="card w-108 bg-neutral text-neutral-content mt-10 ">
+	<div class="card w-108 bg-neutral text-neutral-content mt-20 ">
 		<div class="card-body items-center text-center">
 			<div class="font-bold">
-				<h3> Network: {network}</h3>
-				<h3> Address: {addy}</h3>
-				<h3> Gas Balance: {bal}</h3>
+				{#if configFound === true}
+					<h3> Network: {network}</h3>
+				{:else} 
+					<h3> Config Not Found!</h3>
+				{/if}
+				{#if addy !== undefined}
+					<h3> Address: {addy}</h3>
+					<h3> Gas Balance: {bal}</h3>
+				{/if}
 			</div>
 		</div>
-	  </div>	
-	
+	  </div>
 
 	<form on:submit={() => onSubmit()}>
-		<div class="form-control w-full max-w-xs mt-10 mb-5">
+		
+		<div class="form-control w-full max-w-xs mt-10">
+			<!-- svelte-ignore a11y-label-has-associated-control -->
+			<label class="label">
+			  <span class="label-text">EVM Version</span>
+			</label>
+			<select class="select select-bordered">
+			  <option disabled selected>Pick one</option>
+			  <option>Shanghai</option>
+			  <option>Paris</option>
+			  <option>Berlin</option>
+			  <option>Istanbul</option>
+			  <option>Cancun</option>
+			</select>
+		  </div>
+
+		<div class="form-control w-full max-w-xs mt-5 mb-5">
 			<!-- svelte-ignore a11y-label-has-associated-control -->
 			<label class="label">
 				<span class="label-text">Vyper Contract Path</span>
@@ -149,7 +191,7 @@
 				<span class="label-text">Decrypt Wallet</span>
 			</label>
 			<input
-				type="text"
+				type="password"
 				bind:value={password}
 				placeholder="|> password"
 				class="input input-bordered w-full max-w-xs"
@@ -193,7 +235,8 @@
 							>
 							<span>Error! {deploymentErrorMsg} </span>
 						</div>
-					{:else if deploymentError === false}
+						{/if}
+					{#if success === true}
 						<div class="alert alert-success flex flex-col mt-10 mb-10">
 							<svg
 								xmlns="http://www.w3.org/2000/svg"

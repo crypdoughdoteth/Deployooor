@@ -13,6 +13,9 @@
 				<button class="btn btn-primary border-8 rounded-lg">
 					<a href="/deploy">Get Started</a>
 				</button>
+				<button class="btn btn-primary border-8 rounded-lg">
+					<a href="/deployments">Deployments</a>
+				</button>
 			</div>
 		</div>
 	</div>
