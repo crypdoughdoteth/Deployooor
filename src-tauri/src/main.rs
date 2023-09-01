@@ -4,6 +4,9 @@ use serde::{Deserialize, Serialize};
 use serde_json::{Value, to_writer_pretty};
 use std::{fs::File, io::BufReader, path::Path};
 use vyper_rs::vyper::{Vyper, Evm};
+pub mod deployment_log;
+use deployment_log::*;
+
 
 #[derive(Serialize, Deserialize)]
 struct ContractWalletData {
@@ -103,9 +106,28 @@ async fn get_config() -> Result<Config, String> {
     Ok(conf)
 }
 
+#[tauri::command]
+fn db_write(deployment_data: Deployment) -> Result<(), String> {
+    let mut db = Database::init().map_err(|e| e.to_string())?;
+    db.store.push(Deployment {
+        contract_name: deployment_data.contract_name,
+        deployer_address: deployment_data.deployer_address,
+        date: deployment_data.date,
+        contract_address: deployment_data.contract_address,
+        network: deployment_data.network,
+    });
+    db.dump().map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+#[tauri::command]
+fn db_read() -> Result<Database, String> {
+    Ok(Database::init().map_err(|e| e.to_string())?)
+}
+
 fn main() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![fetch_data, set_config, get_config, get_keys, compile_version])
+        .invoke_handler(tauri::generate_handler![fetch_data, set_config, get_config, get_keys, compile_version, db_read, db_write])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

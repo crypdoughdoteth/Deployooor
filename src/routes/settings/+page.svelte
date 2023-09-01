@@ -1,21 +1,22 @@
 <script lang="ts">
 	import { invoke } from '@tauri-apps/api/tauri';
     import { fade } from 'svelte/transition';
+	import { configuration } from '../../stores';	
+	import type { Config } from '../../stores';
 
-    let success: boolean; 
+	let success: boolean; 
 	let prov: string;
 	let keys: string;
-	type Config = {
-		provider: string;
-		keystore: string;
-	};
+		
 
 	async function onSubmit(): Promise<void> {
         event?.preventDefault();
         await invoke<Config>('set_config', { provider: prov, keystore: keys })			
             .then((message) => {
-                success = true;
-                setTimeout(() => success = false, 3000);
+				$configuration.keystore = message.keystore; 
+				$configuration.provider = message.provider;
+				success = true;
+                setTimeout(() => success = false, 6000);
 			})
             .catch((error) => console.error(error)
 		);

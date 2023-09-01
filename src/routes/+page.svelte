@@ -1,3 +1,26 @@
+<script lang="ts">
+	import { onMount } from 'svelte';
+	import {configuration} from '../stores';
+	import { invoke } from '@tauri-apps/api/tauri';
+	import type { Config } from '../stores';
+
+	// on application start, load config in and set state stores 
+	onMount(async () => {
+		await invoke<Config>('get_config', {})
+			.then(async (message) => {
+				console.log(message);
+				$configuration = {
+					provider: message.provider,
+					keystore: message.keystore,
+				}	
+			})
+			.catch((error) => {
+				console.error(error);
+			});
+	});
+
+</script>
+
 <div class="flex justify-center items-center h-screen hero min-h-screen">
 	<div class="hero-content text-center">
 		<div class="max-w-md">

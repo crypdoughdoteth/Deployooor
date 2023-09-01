@@ -2,22 +2,20 @@
 	import { invoke } from '@tauri-apps/api/tauri';
 	import { HDNodeWallet, JsonRpcProvider, Wallet, ethers, formatEther } from 'ethers';
 	import { onMount } from 'svelte';
+	import { configuration, deployment } from '../../stores';
+	import type { deploymentDetails } from '../../stores';
 
 	type ReturnData = {
 		abi: JSON;
 		initcode: string;
 	};
-	type Config = {
-		provider: string;
-		keystore: string;
-	};
 
+	$: recordDeployment($deployment);
 	$: getKeys(password);
-
 	let evmVersion: string;
 	let addy: string;
-	let bal: string;
-	let network: string; 
+	let bal: string = '0';
+	let network: string;
 	let deploymentError: boolean;
 	let deploymentErrorMsg: unknown;
 	// I
@@ -26,24 +24,27 @@
 	let args: string;
 	// O
 	let res: ReturnData;
-	let conf: Config;
+	//let conf: Config;
 	let configFound: boolean;
 	let web3: JsonRpcProvider;
 	let decryptedWallet: Wallet | HDNodeWallet;
 	let contractAddress: string;
-	let success: boolean; 
+	let success: boolean;
+
 	async function getKeys(pass: string): Promise<Wallet | HDNodeWallet> {
-		await invoke<JSON>('get_keys', { keyPath: conf.keystore })
+		await invoke<JSON>('get_keys', { keyPath: $configuration.keystore })
 			.then(async (message) => {
-					const keys = JSON.stringify(message);
-					decryptedWallet = (await ethers.Wallet.fromEncryptedJson(keys, pass)).connect(web3);
-					addy = decryptedWallet.address
-					bal = formatEther(await web3.getBalance(addy));
-				}) 
-			.catch((err) => {console.error(err)});
+				const keys = JSON.stringify(message);
+				decryptedWallet = (await ethers.Wallet.fromEncryptedJson(keys, pass)).connect(web3);
+				addy = decryptedWallet.address;
+				bal = formatEther(await web3.getBalance(addy));
+			})
+			.catch((err) => {
+				console.error(err);
+			});
 		return decryptedWallet;
 	}
-	
+
 	async function onSubmit(): Promise<void> {
 		event?.preventDefault();
 		// callback to Rust code to
@@ -51,48 +52,59 @@
 		// II.  Update provider
 		console.log(evmVersion);
 		console.log('calling rust code ..... ');
-		
-		if (evmVersion !== undefined ) {
-			await invoke<ReturnData>('compile_version', { path: contractFile, keyPath: conf.keystore })
-			.then((message) => {
-				console.log(message);
-				res = message;
+
+		if (evmVersion !== undefined) {
+			await invoke<ReturnData>('compile_version', {
+				path: $configuration.provider,
+				version: evmVersion
 			})
-			.catch((error) => {
-				deploymentError = true;
-				deploymentErrorMsg = error;
-				console.error(error);
-			});
+				.then((message) => {
+					console.log(message);
+					res = message;
+				})
+				.catch((error) => {
+					deploymentError = true;
+					deploymentErrorMsg = error;
+					console.error(error);
+				});
 		} else {
 			await invoke<ReturnData>('fetch_data', { path: contractFile })
-			.then((message) => {
-				console.log(message);
-				res = message;
-			})
-			.catch((error) => {
-				deploymentError = true;
-				deploymentErrorMsg = error;
-				console.error(error);
-				setTimeout(() => (deploymentError = false), 12000);
-
-			});
+				.then((message) => {
+					console.log(message);
+					res = message;
+				})
+				.catch((error) => {
+					deploymentError = true;
+					deploymentErrorMsg = error;
+					console.error(error);
+					setTimeout(() => (deploymentError = false), 12000);
+				});
 		}
-			await invoke<JSON>('get_keys', { keyPath: conf.keystore })
-				.then(async (message) => {
-						const keys = JSON.stringify(message);
-						decryptedWallet = (await ethers.Wallet.fromEncryptedJson(keys, password)).connect(web3);
-						addy = decryptedWallet.address
-						bal = formatEther(await web3.getBalance(addy));
-					}) 
-				.catch((err) => {console.error(err)});
+		await invoke<JSON>('get_keys', { keyPath: $configuration.keystore })
+			.then(async (message) => {
+				const keys = JSON.stringify(message);
+				decryptedWallet = (await ethers.Wallet.fromEncryptedJson(keys, password)).connect(web3);
+				addy = decryptedWallet.address;
+				bal = formatEther(await web3.getBalance(addy));
+			})
+			.catch((err) => {
+				console.error(err);
+			});
 		let bytecode = res.initcode;
 		const abi = new ethers.Interface(JSON.stringify(res.abi));
 		const contract = new ethers.ContractFactory(abi, { object: bytecode }, decryptedWallet);
-		let tx; 
+		let tx;
 		try {
 			tx = await contract.deploy([args]);
 			await tx.waitForDeployment();
 			contractAddress = await tx.getAddress();
+			$deployment = {
+				contractName: contractFile,
+				deployerAddress: addy,
+				date: new Date().toLocaleDateString(),
+				contractAddress: contractAddress,
+				network: network
+			};
 			console.log(contractAddress);
 			success = true;
 		} catch (e) {
@@ -100,22 +112,25 @@
 			deploymentErrorMsg = e;
 			setTimeout(() => (deploymentError = false), 12000);
 		}
-		//let gas = formatEther(tx.deploymentTransaction()!.gasPrice);
+	}
+
+	async function recordDeployment(deployment: deploymentDetails): Promise<void> {
+		// trigger DB dump of deployment details on Rust side
+		await invoke('db_write', { deployment_data: deployment }).catch((err) => {
+			console.error(err);
+		});
 	}
 
 	onMount(async () => {
-		await invoke<Config>('get_config', {})
-			.then(async (message) => {
-				console.log(message);
-				conf = message;
-				web3 = new ethers.JsonRpcProvider(conf.provider);
-				network = (await web3.getNetwork()).name;
-				configFound = true;
-			})
-			.catch((error) => {
-				configFound = false;
-				console.error(error);
-			});
+		console.log('Deploy Page State', $configuration.provider);
+		web3 = new ethers.JsonRpcProvider($configuration.provider);
+		$deployment.network = (await web3.getNetwork()).name;
+		network = $deployment.network;
+		if ($configuration.provider === '') {
+			configFound = false;
+		} else {
+			configFound = true;
+		}
 	});
 </script>
 
@@ -125,39 +140,37 @@
 	<a href="/deployments" class="btn btn-ghost normal-case text-xl">Deployments</a>
 </div>
 <div class="flex flex-col justify-center items-center h-screen min-h-screen">
-	
-	<div class="card w-108 bg-neutral text-neutral-content mt-20 ">
+	<div class="card w-108 bg-neutral text-neutral-content mt-20">
 		<div class="card-body items-center text-center">
 			<div class="font-bold">
 				{#if configFound === true}
-					<h3> Network: {network}</h3>
-				{:else} 
-					<h3> Config Not Found!</h3>
+					<h3>Network: {$deployment.network}</h3>
+				{:else}
+					<h3>Config Not Found!</h3>
 				{/if}
 				{#if addy !== undefined}
-					<h3> Address: {addy}</h3>
-					<h3> Gas Balance: {bal}</h3>
+					<h3>Address: {addy}</h3>
+					<h3>Gas Balance: {bal}</h3>
 				{/if}
 			</div>
 		</div>
-	  </div>
+	</div>
 
 	<form on:submit={() => onSubmit()}>
-		
 		<div class="form-control w-full max-w-xs mt-10">
 			<!-- svelte-ignore a11y-label-has-associated-control -->
 			<label class="label">
-			  <span class="label-text">EVM Version</span>
+				<span class="label-text">EVM Version</span>
 			</label>
 			<select class="select select-bordered">
-			  <option disabled selected>Pick one</option>
-			  <option>Shanghai</option>
-			  <option>Paris</option>
-			  <option>Berlin</option>
-			  <option>Istanbul</option>
-			  <option>Cancun</option>
+				<option disabled selected>Pick one</option>
+				<option>Shanghai</option>
+				<option>Paris</option>
+				<option>Berlin</option>
+				<option>Istanbul</option>
+				<option>Cancun</option>
 			</select>
-		  </div>
+		</div>
 
 		<div class="form-control w-full max-w-xs mt-5 mb-5">
 			<!-- svelte-ignore a11y-label-has-associated-control -->
@@ -235,7 +248,7 @@
 							>
 							<span>Error! {deploymentErrorMsg} </span>
 						</div>
-						{/if}
+					{/if}
 					{#if success === true}
 						<div class="alert alert-success flex flex-col mt-10 mb-10">
 							<svg
