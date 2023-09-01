@@ -13,8 +13,10 @@
         event?.preventDefault();
         await invoke<Config>('set_config', { provider: prov, keystore: keys })			
             .then((message) => {
-				$configuration.keystore = message.keystore; 
-				$configuration.provider = message.provider;
+				$configuration = {
+					provider: message.provider,
+					keystore: message.keystore,	
+				};
 				success = true;
                 setTimeout(() => success = false, 6000);
 			})

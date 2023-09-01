@@ -90,12 +90,12 @@ async fn get_keys(key_path: String) -> Result<Value, String> {
 }
 
 #[tauri::command]
-async fn set_config(provider: String, keystore: String) -> Result<(), String> {
+async fn set_config(provider: String, keystore: String) -> Result<Config, String> {
     let config_path: &Path = Path::new("./vyper_deployer_config.json"); 
     let conf: Config = Config{provider, keystore};
     let file: File = File::create(config_path).map_err(|e| e.to_string())?;
     to_writer_pretty(file, &conf).map_err(|e| e.to_string())?;
-    Ok(())
+    Ok(conf)
 }
 
 #[tauri::command]
@@ -121,8 +121,8 @@ fn db_write(deployment_data: Deployment) -> Result<(), String> {
 }
 
 #[tauri::command]
-fn db_read() -> Result<Database, String> {
-    Ok(Database::init().map_err(|e| e.to_string())?)
+fn db_read() -> Result<Vec<Deployment>, String> {
+    Ok(Database::init().map_err(|e| e.to_string())?.store)
 }
 
 fn main() {

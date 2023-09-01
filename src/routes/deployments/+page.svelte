@@ -1,8 +1,38 @@
-<div class="navbar rounded-xl place-content-center mt-5">
-	<a href="./" class="btn btn-ghost normal-case text-xl ">Home</a>
-    <a href="/deploy" class="btn btn-ghost normal-case text-xl">Deploy</a>
-    <a href="/settings" class="btn btn-ghost normal-case text-xl">Settings</a>
+<script lang="ts">
+	import { invoke } from '@tauri-apps/api/tauri';
+	import { onMount } from 'svelte';
 
+	type DeploymentData = {
+		contract_name: string;
+		deployer_address: string;
+		date: string;
+		contract_address: string;
+		network: string;
+	};
+
+	let data: Array<DeploymentData>;
+
+	async function getData(): Promise<void> {
+		// trigger DB dump of deployment details on Rust side
+		await invoke<Array<DeploymentData>>('db_read', {})
+			.then((message) => {
+				data = message;
+			})
+			.catch((err) => {
+				console.error(err);
+			});
+	}
+
+	onMount(async () => {
+		await getData();
+	});
+
+</script>
+
+<div class="navbar rounded-xl place-content-center mt-5">
+	<a href="./" class="btn btn-ghost normal-case text-xl">Home</a>
+	<a href="/deploy" class="btn btn-ghost normal-case text-xl">Deploy</a>
+	<a href="/settings" class="btn btn-ghost normal-case text-xl">Settings</a>
 </div>
 <div class="flex flex-col justify-center items-center h-screen min-h-screen">
 	<div class="overflow-x-auto">
@@ -14,8 +44,8 @@
 					<th>Name</th>
 					<th>Deployer Address</th>
 					<th>Date</th>
-                    <th>Contract Address</th>
-                    <th>Network</th>
+					<th>Contract Address</th>
+					<th>Network</th>
 					<th>Fee</th>
 				</tr>
 			</thead>
