@@ -10,8 +10,8 @@
 		initcode: string;
 	};
 
-	$: recordDeployment($deployment);
 	$: getKeys(password);
+	
 	let evmVersion: string;
 	let addy: string;
 	let bal: string = '0';
@@ -99,14 +99,21 @@
 			await tx.waitForDeployment();
 			contractAddress = await tx.getAddress();
 			$deployment = {
-				contractName: contractFile,
-				deployerAddress: addy,
-				date: new Date().toLocaleDateString(),
-				contractAddress: contractAddress,
+				sc_name: contractFile,
+				deployer_address: addy,
+				deploy_date: new Date().toLocaleDateString(),
+				sc_address: contractAddress,
 				network: network
 			};
 			console.log(contractAddress);
 			success = true;
+			await recordDeployment({				
+				sc_name: contractFile,
+				deployer_address: addy,
+				deploy_date: new Date().toLocaleDateString(),
+				sc_address: contractAddress,
+				network: network
+			})
 		} catch (e) {
 			deploymentError = true;
 			deploymentErrorMsg = e;
@@ -116,7 +123,8 @@
 
 	async function recordDeployment(deployment: deploymentDetails): Promise<void> {
 		// trigger DB dump of deployment details on Rust side
-		await invoke('db_write', { deployment_data: deployment }).catch((err) => {
+		console.log("here we go!");
+		await invoke('db_write', { deploymentData: deployment }).catch((err) => {
 			console.error(err);
 		});
 	}

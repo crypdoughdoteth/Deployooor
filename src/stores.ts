@@ -2,10 +2,10 @@ import { writable } from "svelte/store";
 export let configuration = writable<Config>({ provider: '', keystore: '' });
 export let deployment = writable<deploymentDetails>(
     {
-        contractName: '',
-        deployerAddress: '',
-        date: '',
-        contractAddress: '',
+        sc_name: '',
+        deployer_address: '',
+        deploy_date: '',
+        sc_address: '',
         network: ''
     });
 
@@ -15,9 +15,9 @@ export type Config = {
 };
 
 export type deploymentDetails = {
-    contractName: string;
-    deployerAddress: string;
-    date: string;
-    contractAddress: string;
+    sc_name: string;
+    deployer_address: string;
+    deploy_date: string;
+    sc_address: string;
     network: string;
 }
