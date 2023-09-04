@@ -59,10 +59,10 @@
 </div>
 <div class="flex flex-col justify-center items-center h-screen min-h-screen">
 	<div>
-		<table class="table shrink w-74">
+		<table class="table">
 			<!-- head -->
-			<thead class="flex">
-				<tr class="flex justify-center space-x-24">
+			<thead>
+				<tr>
 					<th>Name</th>
 					<!-- <th>Deployer Address</th> -->
 					<th>Date</th>
@@ -70,7 +70,7 @@
 					<th>Network</th>
 				</tr>
 			</thead>
-			<tbody class="flex flex-col">
+			<tbody class="flex-1 flex-col justify-center items-center">
 				{#if loading === true}
 					<tr>
 						<h5 class="text-center mb-5 mt-5">Loading...</h5>
@@ -81,7 +81,7 @@
 					</tr>
 				{:else}
 					{#each curr_items as row}
-						<tr class="hover">
+						<tr>
 							<td>{row.sc_name}</td>
 							<!-- <td>{row.deployer_address}</td> -->
 							<td>{row.deploy_date}</td>
