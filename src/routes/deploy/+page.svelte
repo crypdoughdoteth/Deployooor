@@ -11,7 +11,7 @@
 	};
 
 	$: getKeys(password);
-	
+
 	let evmVersion: string;
 	let addy: string;
 	let bal: string = '0';
@@ -24,12 +24,13 @@
 	let args: string;
 	// O
 	let res: ReturnData;
-	//let conf: Config;
+
 	let configFound: boolean;
 	let web3: JsonRpcProvider;
 	let decryptedWallet: Wallet | HDNodeWallet;
 	let contractAddress: string;
 	let success: boolean;
+	let deployInit: boolean = false;
 
 	async function getKeys(pass: string): Promise<Wallet | HDNodeWallet> {
 		await invoke<JSON>('get_keys', { keyPath: $configuration.keystore })
@@ -52,7 +53,7 @@
 		// II.  Update provider
 		console.log(evmVersion);
 		console.log('calling rust code ..... ');
-
+		deployInit = true;
 		if (evmVersion !== undefined) {
 			await invoke<ReturnData>('compile_version', {
 				path: $configuration.provider,
@@ -80,19 +81,15 @@
 					setTimeout(() => (deploymentError = false), 12000);
 				});
 		}
-		await invoke<JSON>('get_keys', { keyPath: $configuration.keystore })
-			.then(async (message) => {
-				const keys = JSON.stringify(message);
-				decryptedWallet = (await ethers.Wallet.fromEncryptedJson(keys, password)).connect(web3);
-				addy = decryptedWallet.address;
-				bal = formatEther(await web3.getBalance(addy));
-			})
-			.catch((err) => {
-				console.error(err);
-			});
+
 		let bytecode = res.initcode;
 		const abi = new ethers.Interface(JSON.stringify(res.abi));
 		const contract = new ethers.ContractFactory(abi, { object: bytecode }, decryptedWallet);
+		// fetch gas price 
+		// const deployTx = await contract.getDeployTransaction([args]);
+		// const estimateGas = await decryptedWallet.estimateGas(deployTx)
+		// const gasPrice = ethers.formatEther(estimateGas);
+		// gas = gasPrice; 
 		let tx;
 		try {
 			tx = await contract.deploy([args]);
@@ -107,23 +104,24 @@
 			};
 			console.log(contractAddress);
 			success = true;
-			await recordDeployment({				
+			await recordDeployment({
 				sc_name: contractFile,
 				deployer_address: addy,
 				deploy_date: new Date().toLocaleDateString(),
 				sc_address: contractAddress,
 				network: network
-			})
+			});
 		} catch (e) {
 			deploymentError = true;
 			deploymentErrorMsg = e;
 			setTimeout(() => (deploymentError = false), 12000);
 		}
+		deployInit = false; 
 	}
 
 	async function recordDeployment(deployment: deploymentDetails): Promise<void> {
 		// trigger DB dump of deployment details on Rust side
-		console.log("here we go!");
+		console.log('here we go!');
 		await invoke('db_write', { deploymentData: deployment }).catch((err) => {
 			console.error(err);
 		});
@@ -220,7 +218,7 @@
 			/>
 			<label for="my_modal_7" class="btn btn-primary mt-10 border-8 rounded-XL">Next</label>
 			<input type="checkbox" id="my_modal_7" class="modal-toggle" />
-			<div class="modal">
+			<div class="modal backdrop-blur-md">
 				<div class="modal-box flex flex-col">
 					<h3 class="text-lg font-bold justify-center">Are You Ready To Deploy Your Contract?</h3>
 					{#if configFound === false}
@@ -275,7 +273,21 @@
 							<span>Address: {contractAddress}</span>
 						</div>
 					{/if}
+					{#if deployInit === false}
+						
+					<div class="card w-108 bg-neutral text-neutral-content mt-20 mb-20">
+						<div class="card-body items-center text-center">
+							<div class="font-bold">
+									<h3> Deployment Network: {$deployment.network} </h3>
+								</div>
+							</div>
+						</div>
+
 					<button type="submit" class="btn btn-primary rounded-xl border-8 mt-5">DEPLOY</button>
+					{:else }
+						<span class="loading loading-ring loading-lg self-center mt-5"></span>
+						<button class="btn btn-primary rounded-xl border-8 mt-5" disabled>DEPLOY</button>
+					{/if}
 				</div>
 				<label class="modal-backdrop" for="my_modal_7">Close</label>
 			</div>

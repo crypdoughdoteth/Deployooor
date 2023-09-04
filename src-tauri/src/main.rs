@@ -126,7 +126,7 @@ async fn db_read() -> Result<Vec<Deployment>, String> {
             .map_err(|e| e.to_string())?;
         let mut table = Table::new(&query);
         table.with(Style::psql());
-        println!("{table}");
+        println!("\n{table}");
     Ok(query)
 }
 

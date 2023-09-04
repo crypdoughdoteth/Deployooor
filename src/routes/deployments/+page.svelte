@@ -94,15 +94,29 @@
 		</table>
 		<div class="flex flex-col join items-center mt-10">
 			<div>
+				{#if currentPage === 1}
+					<button
+						on:click|preventDefault={() => setCurrentPage(currentPage - 1)}
+						class="join-item btn btn-next-prev"
+						disabled>«</button
+					>
+				{:else}
+					<button
+						on:click|preventDefault={() => setCurrentPage(currentPage - 1)}
+						class="join-item btn btn-next-prev">«</button
+					>
+				{/if}
+				{#if currentPage === totalPages}
 				<button
-					on:click|preventDefault={() => setCurrentPage(currentPage - 1)}
-					class="join-item btn btn-next-prev">«</button
-				>
-
+				on:click|preventDefault={() => setCurrentPage(currentPage + 1)}
+				class="join-item btn btn-next-prev" disabled >»</button
+			>
+				{:else}
 				<button
 					on:click|preventDefault={() => setCurrentPage(currentPage + 1)}
 					class="join-item btn btn-next-prev">»</button
 				>
+				{/if}
 			</div>
 		</div>
 	</div>
