@@ -4,11 +4,11 @@ use serde::{Deserialize, Serialize};
 use serde_json::{to_writer_pretty, Value};
 use sqlx::SqlitePool;
 use std::{fs::File, io::BufReader, path::Path};
-use tauri::State;
 use vyper_rs::vyper::{Evm, Vyper};
 pub mod db;
 use db::*;
-
+use tabled::{Table, settings::Style};
+    
 #[derive(Serialize, Deserialize)]
 struct ContractWalletData {
     abi: Value,
@@ -70,6 +70,7 @@ async fn compile_version(path: String, version: String) -> Result<ContractWallet
         contract.bytecode.unwrap(),
     ))
 }
+
 #[tauri::command]
 async fn get_keys(key_path: String) -> Result<Value, String> {
     let keyfile = File::open(Path::new(&key_path)).map_err(|e| e.to_string())?;
@@ -98,10 +99,11 @@ async fn get_config() -> Result<Config, String> {
 #[tauri::command]
 async fn db_write(deployment_data: Deployment) -> Result<(), String> {
     let db: &sqlx::Pool<sqlx::Sqlite> = DB_POOL.get().unwrap();
+    let name = Path::new(&deployment_data.sc_name).file_name().unwrap().to_string_lossy().to_string();
     let query_result = sqlx::query_as!(
         Deployment,
         "INSERT INTO deployments VALUES ($1, $2, $3, $4, $5)",
-        deployment_data.sc_name,
+        name,
         deployment_data.deployer_address,
         deployment_data.deploy_date,
         deployment_data.sc_address,
@@ -122,7 +124,9 @@ async fn db_read() -> Result<Vec<Deployment>, String> {
             .fetch_all(db)
             .await
             .map_err(|e| e.to_string())?;
-        println!("{query:?}");
+        let mut table = Table::new(&query);
+        table.with(Style::psql());
+        println!("{table}");
     Ok(query)
 }
 

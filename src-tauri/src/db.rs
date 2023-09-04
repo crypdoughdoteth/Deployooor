@@ -1,7 +1,8 @@
 use once_cell::sync::OnceCell;
 use serde::{Deserialize, Serialize};
 use anyhow::Result;
-use sqlx::{FromRow, Sqlite, Pool, migrate::MigrateDatabase, query_as};
+use sqlx::{FromRow, Sqlite, Pool, migrate::MigrateDatabase};
+use tabled::Tabled;
 
 pub const DB_URL: &str = "sqlite://deployer.db";
 pub static DB_POOL: OnceCell<Pool<Sqlite>> = OnceCell::new();
@@ -9,7 +10,8 @@ pub static DB_POOL: OnceCell<Pool<Sqlite>> = OnceCell::new();
 pub struct Database {
     pub store: Pool<Sqlite>,
 }
-#[derive(Serialize, Deserialize, Clone, FromRow, Debug)]
+
+#[derive(Serialize, Deserialize, Clone, FromRow, Debug, Tabled)]
 pub struct Deployment {
     pub sc_name: String,
     pub deployer_address: String,
