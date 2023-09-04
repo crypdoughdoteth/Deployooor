@@ -1,6 +1,12 @@
 <script lang="ts">
 	import { invoke } from '@tauri-apps/api/tauri';
-	import { HDNodeWallet, JsonRpcProvider, Wallet, ethers, formatEther } from 'ethers';
+	import {
+		HDNodeWallet,
+		JsonRpcProvider,
+		Wallet,
+		ethers,
+		formatEther
+	} from 'ethers';
 	import { onMount } from 'svelte';
 	import { configuration, deployment } from '../../stores';
 	import type { deploymentDetails } from '../../stores';
@@ -12,7 +18,7 @@
 
 	$: getKeys(password);
 
-	let evmVersion: string;
+	let version: string;
 	let addy: string;
 	let bal: string = '0';
 	let network: string;
@@ -31,6 +37,8 @@
 	let contractAddress: string;
 	let success: boolean;
 	let deployInit: boolean = false;
+	let gasEstimated = false;
+	let gas: string;
 
 	async function getKeys(pass: string): Promise<Wallet | HDNodeWallet> {
 		await invoke<JSON>('get_keys', { keyPath: $configuration.keystore })
@@ -46,50 +54,54 @@
 		return decryptedWallet;
 	}
 
+	async function estimateGas() {
+		await invoke<ReturnData>('compile_version', { version: version, path: contractFile })
+			.then(async (message) => {
+				console.log(message);
+				let ret = message;
+				let bytecode = ret.initcode;
+				const abi = new ethers.Interface(JSON.stringify(ret.abi));
+				const contract = new ethers.ContractFactory(abi, { object: bytecode }, decryptedWallet);
+				//fetch gas price
+				const deployTx = await contract.getDeployTransaction([args]);
+				const estimateGas = await decryptedWallet.estimateGas(deployTx);
+				const gasPrice = ethers.formatEther(estimateGas);
+				gas = gasPrice;
+				gasEstimated = true;
+				return gas;
+			})
+			.catch((error) => {
+				// deploymentError = true;
+				// deploymentErrorMsg = error;
+				gasEstimated = false;
+				console.error(error);
+			});
+	}
+
 	async function onSubmit(): Promise<void> {
 		event?.preventDefault();
 		// callback to Rust code to
 		// I.   Compile Vyper file
 		// II.  Update provider
-		console.log(evmVersion);
+		console.log(version);
 		console.log('calling rust code ..... ');
 		deployInit = true;
-		if (evmVersion !== undefined) {
-			await invoke<ReturnData>('compile_version', {
-				path: $configuration.provider,
-				version: evmVersion
+		await invoke<ReturnData>('compile_version', {
+			path: contractFile,
+			version: version
+		})
+			.then((message) => {
+				console.log(message);
+				res = message;
 			})
-				.then((message) => {
-					console.log(message);
-					res = message;
-				})
-				.catch((error) => {
-					deploymentError = true;
-					deploymentErrorMsg = error;
-					console.error(error);
-				});
-		} else {
-			await invoke<ReturnData>('fetch_data', { path: contractFile })
-				.then((message) => {
-					console.log(message);
-					res = message;
-				})
-				.catch((error) => {
-					deploymentError = true;
-					deploymentErrorMsg = error;
-					console.error(error);
-					setTimeout(() => (deploymentError = false), 12000);
-				});
-		}
-
+			.catch((error) => {
+				deploymentError = true;
+				deploymentErrorMsg = error;
+				console.error(error);
+			});
 		let bytecode = res.initcode;
 		const abi = new ethers.Interface(JSON.stringify(res.abi));
 		const contract = new ethers.ContractFactory(abi, { object: bytecode }, decryptedWallet);
-		// fetch gas price 
-		// const deployTx = await contract.getDeployTransaction([args]);
-		// const estimateGas = await decryptedWallet.estimateGas(deployTx)
-		// const gasPrice = ethers.formatEther(estimateGas);
-		// gas = gasPrice; 
 		let tx;
 		try {
 			tx = await contract.deploy([args]);
@@ -98,7 +110,7 @@
 			$deployment = {
 				sc_name: contractFile,
 				deployer_address: addy,
-				deploy_date: new Date().toLocaleDateString(),
+				deploy_date: new Date().toTimeString(),
 				sc_address: contractAddress,
 				network: network
 			};
@@ -107,7 +119,7 @@
 			await recordDeployment({
 				sc_name: contractFile,
 				deployer_address: addy,
-				deploy_date: new Date().toLocaleDateString(),
+				deploy_date: new Date().toLocaleDateString() + '@' + new Date().toLocaleTimeString(),
 				sc_address: contractAddress,
 				network: network
 			});
@@ -116,7 +128,7 @@
 			deploymentErrorMsg = e;
 			setTimeout(() => (deploymentError = false), 12000);
 		}
-		deployInit = false; 
+		deployInit = false;
 	}
 
 	async function recordDeployment(deployment: deploymentDetails): Promise<void> {
@@ -152,11 +164,14 @@
 				{#if configFound === true}
 					<h3>Network: {$deployment.network}</h3>
 				{:else}
-					<h3>Config Not Found!</h3>
+					<h3 class="text-red-600 font-bold underline">Config Not Found!</h3>
 				{/if}
 				{#if addy !== undefined}
 					<h3>Address: {addy}</h3>
 					<h3>Gas Balance: {bal}</h3>
+				{/if}
+				{#if gasEstimated === true}
+					<h3>Gas Estimation: {gas}</h3>
 				{/if}
 			</div>
 		</div>
@@ -168,9 +183,8 @@
 			<label class="label">
 				<span class="label-text">EVM Version</span>
 			</label>
-			<select class="select select-bordered">
-				<option disabled selected>Pick one</option>
-				<option>Shanghai</option>
+			<select bind:value={version} class="select select-bordered">
+				<option selected>Shanghai</option>
 				<option>Paris</option>
 				<option>Berlin</option>
 				<option>Istanbul</option>
@@ -216,7 +230,7 @@
 				class="input input-bordered w-full max-w-xs"
 				required
 			/>
-			<label for="my_modal_7" class="btn btn-primary mt-10 border-8 rounded-XL">Next</label>
+			<label for="my_modal_7" class="btn btn-primary mt-2 border-8 rounded-XL">Next</label>
 			<input type="checkbox" id="my_modal_7" class="modal-toggle" />
 			<div class="modal backdrop-blur-md">
 				<div class="modal-box flex flex-col">
@@ -239,7 +253,7 @@
 						</div>
 					{/if}
 					{#if deploymentError === true}
-						<div class="alert alert-error mt-10 mb-10">
+						<div class="alert alert-error mt-5 mb-5">
 							<svg
 								xmlns="http://www.w3.org/2000/svg"
 								class="stroke-current shrink-0 h-6 w-6"
@@ -256,7 +270,7 @@
 						</div>
 					{/if}
 					{#if success === true}
-						<div class="alert alert-success flex flex-col mt-10 mb-10">
+						<div class="alert alert-success flex flex-col mt-5 mb-5">
 							<svg
 								xmlns="http://www.w3.org/2000/svg"
 								class="stroke-current shrink-0 h-6 w-6"
@@ -273,24 +287,29 @@
 							<span>Address: {contractAddress}</span>
 						</div>
 					{/if}
-					{#if deployInit === false}
-						
-					<div class="card w-108 bg-neutral text-neutral-content mt-20 mb-20">
+
+					<div class="card w-108 bg-neutral text-neutral-content mt-5 mb-5">
 						<div class="card-body items-center text-center">
 							<div class="font-bold">
-									<h3> Deployment Network: {$deployment.network} </h3>
-								</div>
+								<h3>Deployment Network: {$deployment.network}</h3>
+								<h3>Gas Estimation: {gas}</h3>
 							</div>
 						</div>
-
-					<button type="submit" class="btn btn-primary rounded-xl border-8 mt-5">DEPLOY</button>
-					{:else }
-						<span class="loading loading-ring loading-lg self-center mt-5"></span>
-						<button class="btn btn-primary rounded-xl border-8 mt-5" disabled>DEPLOY</button>
+					</div>
+					{#if deployInit === false}
+						<button type="submit" class="btn btn-primary rounded-xl border-8">DEPLOY</button>
+					{:else}
+						<span class="loading loading-ring loading-lg mt-5 mb-5 self-center" />
+						<button class="btn btn-primary rounded-xl border-8" disabled>DEPLOY</button>
 					{/if}
 				</div>
 				<label class="modal-backdrop" for="my_modal_7">Close</label>
 			</div>
 		</div>
 	</form>
+	{#if gasEstimated === false}
+		<button on:click={() => estimateGas()} class="btn btn-primary border-8 rounded-XL px-14">
+			Estimate Gas
+		</button>
+	{/if}
 </div>

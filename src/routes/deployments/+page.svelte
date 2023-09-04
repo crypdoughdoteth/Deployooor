@@ -81,7 +81,7 @@
 					</tr>
 				{:else}
 					{#each curr_items as row}
-						<tr>
+						<tr class="hover">
 							<td>{row.sc_name}</td>
 							<!-- <td>{row.deployer_address}</td> -->
 							<td>{row.deploy_date}</td>

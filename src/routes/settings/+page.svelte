@@ -8,7 +8,6 @@
 	let prov: string;
 	let keys: string;
 		
-
 	async function onSubmit(): Promise<void> {
         event?.preventDefault();
         await invoke<Config>('set_config', { provider: prov, keystore: keys })			
