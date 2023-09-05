@@ -1,32 +1,26 @@
 <script lang="ts">
 	import { invoke } from '@tauri-apps/api/tauri';
 	import { fade } from 'svelte/transition';
-	import { configuration } from '../../stores';
-	import type { Config } from '../../stores';
 
-	let success: boolean;
-	let prov: string;
-	let keys: string;
-
-	async function onSubmit(): Promise<void> {
-		event?.preventDefault();
-		await invoke<Config>('set_config', { provider: prov, keystore: keys })
-			.then((message) => {
-				$configuration = {
-					provider: message.provider,
-					keystore: message.keystore
-				};
+	let pw: string;
+	let name: string;
+	let path: string;
+	let keystorePending = false;
+	let success = false;
+	async function createKeystore(path: string, pass: string, name: string): Promise<void> {
+		keystorePending = true;
+		await invoke('generate_keystore', { path: path, password: pass, name: name })
+			.then((_) => {
 				success = true;
 				setTimeout(() => (success = false), 6000);
 			})
 			.catch((error) => console.error(error));
+		keystorePending = false;
 	}
 </script>
 
 <div class="navbar rounded-xl place-content-center mt-5">
-	<a href="./" class="btn btn-ghost normal-case text-xl">Home</a>
-	<a href="/deploy" class="btn btn-ghost normal-case text-xl">Deploy</a>
-	<a href="/keystore" class="btn btn-ghost normal-case text-xl">Create Keystore</a>
+	<a href="/settings" class="btn btn-ghost normal-case text-xl">Settings</a>
 </div>
 {#if success === true}
 	<div transition:fade class="alert alert-success">
@@ -46,38 +40,52 @@
 	</div>
 {/if}
 <div class="flex flex-col justify-center items-center">
-	<h1 class="text-3xl font-bold text-emerald-700 mt-10">Set your config!</h1>
+	<h1 class="text-3xl font-bold text-emerald-700 mt-10">Create Your Keystore!</h1>
 </div>
+
 <div class="flex flex-col justify-center items-center h-screen min-h-screen">
-	<form on:submit={() => onSubmit()}>
-		<div class="form-control w-full max-w-xs mb-5">
+	<form on:submit={() => createKeystore(path, pw, name)}>
+		<div class="form-control w-full max-w-xs">
+			<!-- svelte-ignore a11y-label-has-associated-control -->
+			<label class="label">
+				<span class="label-text">Keystore Name</span>
+			</label>
+			<input
+				bind:value={name}
+				type="text"
+				placeholder="|> name"
+				class="input input-bordered w-full max-w-xs"
+				required
+			/>
+		</div>
+		<div class="form-control w-full max-w-xs">
 			<!-- svelte-ignore a11y-label-has-associated-control -->
 			<label class="label">
 				<span class="label-text">Keystore Path</span>
 			</label>
 			<input
+				bind:value={path}
 				type="text"
-				bind:value={keys}
 				placeholder="|> path"
 				class="input input-bordered w-full max-w-xs"
 				required
 			/>
 		</div>
-		<div class="form-control w-full max-w-xs mb-5">
+		<div class="form-control w-full max-w-xs">
 			<!-- svelte-ignore a11y-label-has-associated-control -->
 			<label class="label">
-				<span class="label-text">JSON-RPC Provider</span>
+				<span class="label-text">Encrypt With Password</span>
 			</label>
 			<input
+				bind:value={pw}
 				type="text"
-				bind:value={prov}
-				placeholder="|> url"
+				placeholder="|> password"
 				class="input input-bordered w-full max-w-xs"
 				required
 			/>
 		</div>
 		<div class="flex flex-col justify-center items-center">
-			<button type="submit" class="btn btn-primary rounded-xl border-8 mt-5">Save </button>
+			<button type="submit" class="btn btn-primary rounded-xl border-8 mt-10">CREATE</button>
 		</div>
 	</form>
 </div>

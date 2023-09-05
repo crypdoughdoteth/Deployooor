@@ -1,38 +1,37 @@
-# create-svelte
+# Build From Source 
 
-Everything you need to build a Svelte project, powered by [`create-svelte`](https://github.com/sveltejs/kit/tree/master/packages/create-svelte).
+### Dependencies 
 
-## Creating a project
+1. Vyper Compiler (add to PATH),
+2. Python,
+3. Rust,
+4. sqlx-cli: `cargo sqlx-cli install`
 
-If you're seeing this, you've probably already done this step. Congrats!
+#### Rust 
 
-```bash
-# create a new project in the current directory
-npm create svelte@latest
+Linux/Mac/WSL: `curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh`
 
-# create a new project in my-app
-npm create svelte@latest my-app
-```
+Windows: Download rustup-init.exe from `https://www.rust-lang.org/tools/install`
 
-## Developing
+#### Vyper
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+`pip install vyper`
 
-```bash
-npm run dev
+#### Initialize SQLite:
 
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
+`cargo sqlx database create --database-url sqlite://deployer.db`
 
-## Building
+`cargo sqlx migrate run --database-url sqlite://deployer.db`
 
-To create a production version of your app:
+Windows: `move deployer.db ./src-tauri` | Linux / Mac: `mv deployer.db ./src-tauri`
 
-```bash
-npm run build
-```
+#### Frontend (Svelte): 
 
-You can preview the production build with `npm run preview`.
+`npm install`
 
-> To deploy your app, you may need to install an [adapter](https://kit.svelte.dev/docs/adapters) for your target environment.
+Create a .env file in the project root with `DATABASE_URL = sqlite://deployer.db` on the first line. 
+
+To run this software in non-release mode: `cargo tauri dev`. 
+
+### Optional: tauri-cli (for bundling into single installer):
+`cargo install tauri-cli` && `cargo tauri build`

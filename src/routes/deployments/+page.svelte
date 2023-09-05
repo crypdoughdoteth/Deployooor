@@ -57,6 +57,9 @@
 	<a href="/deploy" class="btn btn-ghost normal-case text-xl">Deploy</a>
 	<a href="/settings" class="btn btn-ghost normal-case text-xl">Settings</a>
 </div>
+<div class="flex flex-col justify-center items-center">
+	<h1 class="text-3xl font-bold text-emerald-700 mt-10">Deployed Contracts</h1>
+</div>
 <div class="flex flex-col justify-center items-center h-screen min-h-screen">
 	<div>
 		<table class="table">
@@ -77,7 +80,7 @@
 					</tr>
 				{:else if loading === false && curr_items.length === 0}
 					<tr>
-						<h5 class="text-center mb-5 mt-5">Nothing to display</h5>
+						<h5 class="mb-5 mt-5 self-center">Nothing to display</h5>
 					</tr>
 				{:else}
 					{#each curr_items as row}
@@ -107,15 +110,16 @@
 					>
 				{/if}
 				{#if currentPage === totalPages}
-				<button
-				on:click|preventDefault={() => setCurrentPage(currentPage + 1)}
-				class="join-item btn btn-next-prev" disabled >»</button
-			>
+					<button
+						on:click|preventDefault={() => setCurrentPage(currentPage + 1)}
+						class="join-item btn btn-next-prev"
+						disabled>»</button
+					>
 				{:else}
-				<button
-					on:click|preventDefault={() => setCurrentPage(currentPage + 1)}
-					class="join-item btn btn-next-prev">»</button
-				>
+					<button
+						on:click|preventDefault={() => setCurrentPage(currentPage + 1)}
+						class="join-item btn btn-next-prev">»</button
+					>
 				{/if}
 			</div>
 		</div>

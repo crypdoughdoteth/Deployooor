@@ -1,5 +1,6 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+use ethers::signers::Wallet;
 use serde::{Deserialize, Serialize};
 use serde_json::{to_writer_pretty, Value};
 use sqlx::SqlitePool;
@@ -8,7 +9,8 @@ use vyper_rs::vyper::{Evm, Vyper};
 pub mod db;
 use db::*;
 use tabled::{Table, settings::Style};
-    
+use ethers::core::rand::thread_rng;
+
 #[derive(Serialize, Deserialize)]
 struct ContractWalletData {
     abi: Value,
@@ -130,6 +132,13 @@ async fn db_read() -> Result<Vec<Deployment>, String> {
     Ok(query)
 }
 
+#[tauri::command]
+fn generate_keystore(path: String, password: String, name: String) -> Result<(), String> {
+    Wallet::new_keystore(path, &mut thread_rng(), password, Some(&name)).map_err(|e| e.to_string())?; 
+    println!("Success, wallet created!");
+    Ok(())
+}
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     Database::init().await?;
@@ -144,7 +153,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             get_keys,
             compile_version,
             db_read,
-            db_write
+            db_write,
+            generate_keystore
         ])
         .run(tauri::generate_context!())?;
     Ok(())

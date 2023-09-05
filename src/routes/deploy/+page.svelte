@@ -1,12 +1,6 @@
 <script lang="ts">
 	import { invoke } from '@tauri-apps/api/tauri';
-	import {
-		HDNodeWallet,
-		JsonRpcProvider,
-		Wallet,
-		ethers,
-		formatEther
-	} from 'ethers';
+	import { HDNodeWallet, JsonRpcProvider, Wallet, ethers, formatEther } from 'ethers';
 	import { onMount } from 'svelte';
 	import { configuration, deployment } from '../../stores';
 	import type { deploymentDetails } from '../../stores';
@@ -152,13 +146,16 @@
 	});
 </script>
 
-<div class="navbar rounded-xl place-content-center mt-5 mb-10">
+<div class="navbar rounded-xl place-content-center mt-5 mb-5">
 	<a href="./" class="btn btn-ghost normal-case text-xl">Home</a>
 	<a href="/settings" class="btn btn-ghost normal-case text-xl">Settings</a>
 	<a href="/deployments" class="btn btn-ghost normal-case text-xl">Deployments</a>
 </div>
+<div class="flex flex-col justify-center items-center">
+	<h1 class="text-3xl font-bold mt-5 mb-10 text-emerald-700">Deploy Your Contract!</h1>
+</div>
 <div class="flex flex-col justify-center items-center h-screen min-h-screen">
-	<div class="card w-108 bg-neutral text-neutral-content mt-20">
+	<div class="card w-108 bg-neutral text-neutral-content mt-10">
 		<div class="card-body items-center text-center">
 			<div class="font-bold">
 				{#if configFound === true}
@@ -218,7 +215,7 @@
 				required
 			/>
 		</div>
-		<div class="form-control w-full max-w-xs mb-5">
+		<div class="form-control w-full max-w-xs mb-2">
 			<!-- svelte-ignore a11y-label-has-associated-control -->
 			<label class="label">
 				<span class="label-text">Decrypt Wallet</span>
@@ -230,7 +227,7 @@
 				class="input input-bordered w-full max-w-xs"
 				required
 			/>
-			<label for="my_modal_7" class="btn btn-primary mt-2 border-8 rounded-XL">Next</label>
+			<label for="my_modal_7" class="btn btn-primary border-8 rounded-XL mt-10">Next</label>
 			<input type="checkbox" id="my_modal_7" class="modal-toggle" />
 			<div class="modal backdrop-blur-md">
 				<div class="modal-box flex flex-col">
@@ -307,9 +304,7 @@
 			</div>
 		</div>
 	</form>
-	{#if gasEstimated === false}
-		<button on:click={() => estimateGas()} class="btn btn-primary border-8 rounded-XL px-14">
-			Estimate Gas
-		</button>
-	{/if}
+	<button on:click={() => estimateGas()} class="btn btn-primary border-8 rounded-XL px-14">
+		Estimate Gas
+	</button>
 </div>
