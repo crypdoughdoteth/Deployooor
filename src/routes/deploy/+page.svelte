@@ -101,10 +101,11 @@
 			tx = await contract.deploy([args]);
 			await tx.waitForDeployment();
 			contractAddress = await tx.getAddress();
+			let date = new Date().toLocaleDateString() + '@' + new Date().toLocaleTimeString();
 			$deployment = {
 				sc_name: contractFile,
 				deployer_address: addy,
-				deploy_date: new Date().toTimeString(),
+				deploy_date: date,
 				sc_address: contractAddress,
 				network: network
 			};
@@ -113,7 +114,7 @@
 			await recordDeployment({
 				sc_name: contractFile,
 				deployer_address: addy,
-				deploy_date: new Date().toLocaleDateString() + '@' + new Date().toLocaleTimeString(),
+				deploy_date: date,
 				sc_address: contractAddress,
 				network: network
 			});

@@ -5795,8 +5795,9 @@ dependencies = [
 
 [[package]]
 name = "vyper-rs"
-version = "0.1.0"
-source = "git+https://github.com/crypdoughdoteth/vyper-rs.git#801d595b13f3c28198e1797f387aab220fd97661"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "769b7151e6972999cf4cc3f679e955f426aaa743d23d81a22f7ae163b8fbcf5c"
 dependencies = [
  "anyhow",
  "hex",

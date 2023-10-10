@@ -4,7 +4,7 @@ use ethers::signers::Wallet;
 use serde::{Deserialize, Serialize};
 use serde_json::{to_writer_pretty, Value};
 use sqlx::SqlitePool;
-use std::{fs::File, io::BufReader, path::Path};
+use std::{fs::File, io::BufReader, path::PathBuf};
 use vyper_rs::vyper::{Evm, Vyper};
 pub mod db;
 use db::*;
@@ -31,13 +31,13 @@ impl ContractWalletData {
 
 #[tauri::command]
 async fn fetch_data(path: String) -> Result<ContractWalletData, String> {
-    let cpath: &Path = Path::new(path.leak());
-    let abi: &Path = Path::new("abi.json");
+    let cpath: PathBuf = PathBuf::from(path);
+    let abi: PathBuf = PathBuf::from("abi.json");
     let mut contract = Vyper::new(cpath, abi);
     contract.compile().map_err(|e| return e.to_string())?;
     contract.abi().map_err(|e| return e.to_string())?;
 
-    let abifile = File::open(&abi).map_err(|e| e.to_string())?;
+    let abifile = File::open(&contract.abi).map_err(|e| e.to_string())?;
     let reader = BufReader::new(abifile);
     let abifile_json: Value = serde_json::from_reader(reader).map_err(|e| e.to_string())?;
     //println!("{:?}", contract.bytecode.clone().unwrap());
@@ -57,14 +57,14 @@ async fn compile_version(path: String, version: String) -> Result<ContractWallet
         &"Cancun" => Evm::Cancun,
         _ => Evm::Shanghai,
     };
-    let cpath: &Path = Path::new(path.leak());
-    let abi: &Path = Path::new("abi.json");
+    let cpath: PathBuf = PathBuf::from(path);
+    let abi: PathBuf = PathBuf::from("abi.json");
     let mut contract = Vyper::new(cpath, abi);
     contract
         .compile_ver(ver)
         .map_err(|e| return e.to_string())?;
     contract.abi().map_err(|e| return e.to_string())?;
-    let abifile = File::open(&abi).map_err(|e| e.to_string())?;
+    let abifile = File::open(&contract.abi).map_err(|e| e.to_string())?;
     let reader = BufReader::new(abifile);
     let abifile_json: Value = serde_json::from_reader(reader).map_err(|e| e.to_string())?;
     Ok(ContractWalletData::new(
@@ -75,7 +75,7 @@ async fn compile_version(path: String, version: String) -> Result<ContractWallet
 
 #[tauri::command]
 async fn get_keys(key_path: String) -> Result<Value, String> {
-    let keyfile = File::open(Path::new(&key_path)).map_err(|e| e.to_string())?;
+    let keyfile = File::open(PathBuf::from(&key_path)).map_err(|e| e.to_string())?;
     let reader = BufReader::new(keyfile);
     let keystore_json: Value = serde_json::from_reader(reader).map_err(|e| e.to_string())?;
     Ok(keystore_json)
@@ -83,7 +83,7 @@ async fn get_keys(key_path: String) -> Result<Value, String> {
 
 #[tauri::command]
 async fn set_config(provider: String, keystore: String) -> Result<Config, String> {
-    let config_path: &Path = Path::new("./vyper_deployer_config.json");
+    let config_path: PathBuf = PathBuf::from("./vyper_deployer_config.json");
     let conf: Config = Config { provider, keystore };
     let file: File = File::create(config_path).map_err(|e| e.to_string())?;
     to_writer_pretty(file, &conf).map_err(|e| e.to_string())?;
@@ -101,7 +101,7 @@ async fn get_config() -> Result<Config, String> {
 #[tauri::command]
 async fn db_write(deployment_data: Deployment) -> Result<(), String> {
     let db: &sqlx::Pool<sqlx::Sqlite> = DB_POOL.get().unwrap();
-    let name = Path::new(&deployment_data.sc_name).file_name().unwrap().to_string_lossy().to_string();
+    let name = PathBuf::from(&deployment_data.sc_name).file_name().unwrap().to_string_lossy().to_string();
     let query_result = sqlx::query_as!(
         Deployment,
         "INSERT INTO deployments VALUES ($1, $2, $3, $4, $5)",
