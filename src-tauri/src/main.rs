@@ -4,7 +4,7 @@ use ethers::signers::Wallet;
 use serde::{Deserialize, Serialize};
 use serde_json::{to_writer_pretty, Value};
 use sqlx::SqlitePool;
-use std::{fs::File, io::BufReader, path::PathBuf};
+use std::{fs::File, io::BufReader, path::{Path, PathBuf}};
 use vyper_rs::vyper::{Evm, Vyper};
 pub mod db;
 use db::*;
@@ -31,12 +31,10 @@ impl ContractWalletData {
 
 #[tauri::command]
 async fn fetch_data(path: String) -> Result<ContractWalletData, String> {
-    let cpath: PathBuf = PathBuf::from(path);
-    let abi: PathBuf = PathBuf::from("abi.json");
-    let mut contract = Vyper::new(cpath, abi);
+    let cpath: &Path = &Path::new(&path);
+    let mut contract = Vyper::new(cpath);
     contract.compile().map_err(|e| return e.to_string())?;
-    contract.abi().map_err(|e| return e.to_string())?;
-
+    contract.gen_abi().map_err(|e| return e.to_string())?;
     let abifile = File::open(&contract.abi).map_err(|e| e.to_string())?;
     let reader = BufReader::new(abifile);
     let abifile_json: Value = serde_json::from_reader(reader).map_err(|e| e.to_string())?;
@@ -57,13 +55,12 @@ async fn compile_version(path: String, version: String) -> Result<ContractWallet
         &"Cancun" => Evm::Cancun,
         _ => Evm::Shanghai,
     };
-    let cpath: PathBuf = PathBuf::from(path);
-    let abi: PathBuf = PathBuf::from("abi.json");
-    let mut contract = Vyper::new(cpath, abi);
+    let cpath: &Path = &Path::new(&path);
+    let mut contract = Vyper::new(cpath);
     contract
-        .compile_ver(ver)
+        .compile_ver(&ver)
         .map_err(|e| return e.to_string())?;
-    contract.abi().map_err(|e| return e.to_string())?;
+    contract.gen_abi().map_err(|e| return e.to_string())?;
     let abifile = File::open(&contract.abi).map_err(|e| e.to_string())?;
     let reader = BufReader::new(abifile);
     let abifile_json: Value = serde_json::from_reader(reader).map_err(|e| e.to_string())?;

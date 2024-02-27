@@ -143,28 +143,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "async-stream"
-version = "0.3.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cd56dd203fef61ac097dd65721a419ddccb106b2d2b70ba60a6b529f03961a51"
-dependencies = [
- "async-stream-impl",
- "futures-core",
- "pin-project-lite",
-]
-
-[[package]]
-name = "async-stream-impl"
-version = "0.3.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "16e62a023e7c117e27523144c5d2459f4397fcc3cab0085af8e2224f643a0193"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.29",
-]
-
-[[package]]
 name = "async-trait"
 version = "0.1.73"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2540,15 +2518,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "itertools"
-version = "0.11.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b1c173a5686ce8bfa551b3563d0c2170bf24ca44da99c7ca4bfdab5418c3fe57"
-dependencies = [
- "either",
-]
-
-[[package]]
 name = "itoa"
 version = "0.4.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2693,7 +2662,7 @@ dependencies = [
  "diff",
  "ena",
  "is-terminal",
- "itertools 0.10.5",
+ "itertools",
  "lalrpop-util",
  "petgraph",
  "regex",
@@ -4552,7 +4521,7 @@ version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9c792fe9fae2a2f716846f214ca10d5a1e21133e0bf36cef34bcc4a852467b21"
 dependencies = [
- "itertools 0.10.5",
+ "itertools",
  "lalrpop",
  "lalrpop-util",
  "phf 0.11.2",
@@ -4619,7 +4588,7 @@ version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0c12bc9199d1db8234678b7051747c07f517cdcf019262d1847b94ec8b1aee3e"
 dependencies = [
- "itertools 0.10.5",
+ "itertools",
  "nom",
  "unicode_categories",
 ]
@@ -5439,19 +5408,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "tokio-test"
-version = "0.4.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e89b3cbabd3ae862100094ae433e1def582cf86451b4e9bf83aa7ac1d8a7d719"
-dependencies = [
- "async-stream",
- "bytes",
- "futures-core",
- "tokio",
- "tokio-stream",
-]
-
-[[package]]
 name = "tokio-tungstenite"
 version = "0.20.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5795,17 +5751,14 @@ dependencies = [
 
 [[package]]
 name = "vyper-rs"
-version = "0.2.0"
+version = "2.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "769b7151e6972999cf4cc3f679e955f426aaa743d23d81a22f7ae163b8fbcf5c"
+checksum = "b76bb68189314cf8055d6424c90c3373a7ecfe512b8d7d9540180a0ba7271b99"
 dependencies = [
- "anyhow",
  "hex",
- "itertools 0.11.0",
  "serde",
  "serde_json",
  "tokio",
- "tokio-test",
 ]
 
 [[package]]
