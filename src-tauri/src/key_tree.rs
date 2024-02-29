@@ -10,7 +10,7 @@ use tauri::State;
 use crate::DB_POOL;
 
 pub struct AppState {
-    tree: Mutex<BTreeMap<String, PathBuf>>,
+    pub tree: Mutex<BTreeMap<String, PathBuf>>,
 }
 
 #[derive(Serialize, Deserialize)]

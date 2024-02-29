@@ -5,12 +5,12 @@ pub mod key_tree;
 use serde::{Deserialize, Serialize};
 use serde_json::{to_writer_pretty, Value};
 use sqlx::SqlitePool;
-use std::{fs::File, io::BufReader, path::{Path, PathBuf}};
+use std::{collections::BTreeMap, fs::File, io::BufReader, path::{Path, PathBuf}, sync::Mutex};
 use vyper_rs::vyper::{Evm, Vyper};
 pub mod db;
 use db::*;
 use tabled::{Table, settings::Style};
-use key_tree::{list_keys, get_key_by_name, create_key};
+use key_tree::{create_key, get_key_by_name, list_keys, AppState};
 
 #[derive(Serialize, Deserialize)]
 struct ContractWalletData {
@@ -145,6 +145,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             list_keys,
             create_key,
         ])
+        .manage(AppState{tree: Mutex::new(BTreeMap::new())})
         .run(tauri::generate_context!())?;
     Ok(())
 }
