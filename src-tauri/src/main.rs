@@ -55,7 +55,12 @@ async fn compile_version(path: String, version: String) -> Result<ContractWallet
         &"Cancun" => Evm::Cancun,
         _ => Evm::Shanghai,
     };
+    // remove the "" from the path
+    let path = path.replace("\"", "");
+    println!("{:?}", ver);
+    println!("{:?}", path);
     let cpath: &Path = &Path::new(&path);
+    println!("{:?}", cpath);
     let mut contract = Vyper::new(cpath);
     contract
         .compile_ver(&ver)
