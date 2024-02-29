@@ -13,10 +13,10 @@ export const GenerateKeystorePage = () => {
     try {
       e.preventDefault();
   
-      const res = await invoke('generate_keystore', {
+      const res = await invoke('create_key', {
         path: './',
         password,
-        name,
+        nickname: name,
       });
 
       console.log(res);
