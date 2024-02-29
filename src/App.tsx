@@ -1,5 +1,4 @@
 import { useContext } from 'react';
-import './App.css';
 import { CreateConfigPage } from './pages/create-config';
 import { PageContext, Pages } from './layout';
 import { HomePage } from './pages/home';
