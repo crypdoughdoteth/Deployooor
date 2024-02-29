@@ -1,6 +1,7 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
-use ethers::signers::Wallet;
+pub mod stylus;
+pub mod key_tree; 
 use serde::{Deserialize, Serialize};
 use serde_json::{to_writer_pretty, Value};
 use sqlx::SqlitePool;
@@ -9,7 +10,7 @@ use vyper_rs::vyper::{Evm, Vyper};
 pub mod db;
 use db::*;
 use tabled::{Table, settings::Style};
-use ethers::core::rand::thread_rng;
+use key_tree::{list_keys, get_key_by_name, create_key};
 
 #[derive(Serialize, Deserialize)]
 struct ContractWalletData {
@@ -76,14 +77,6 @@ async fn compile_version(path: String, version: String) -> Result<ContractWallet
 }
 
 #[tauri::command]
-async fn get_keys(key_path: String) -> Result<Value, String> {
-    let keyfile = File::open(PathBuf::from(&key_path)).map_err(|e| e.to_string())?;
-    let reader = BufReader::new(keyfile);
-    let keystore_json: Value = serde_json::from_reader(reader).map_err(|e| e.to_string())?;
-    Ok(keystore_json)
-}
-
-#[tauri::command]
 async fn set_config(provider: String, keystore: String) -> Result<Config, String> {
     let config_path: PathBuf = PathBuf::from("./vyper_deployer_config.json");
     let conf: Config = Config { provider, keystore };
@@ -134,13 +127,6 @@ async fn db_read() -> Result<Vec<Deployment>, String> {
     Ok(query)
 }
 
-#[tauri::command]
-fn generate_keystore(path: String, password: String, name: String) -> Result<(), String> {
-    Wallet::new_keystore(path, &mut thread_rng(), password, Some(&name)).map_err(|e| e.to_string())?; 
-    println!("Success, wallet created!");
-    Ok(())
-}
-
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     Database::init().await?;
@@ -152,11 +138,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             fetch_data,
             set_config,
             get_config,
-            get_keys,
+            get_key_by_name,
             compile_version,
             db_read,
             db_write,
-            generate_keystore
+            list_keys,
+            create_key,
         ])
         .run(tauri::generate_context!())?;
     Ok(())
