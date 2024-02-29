@@ -6,3 +6,9 @@ CREATE TABLE IF NOT EXISTS deployments
     sc_address varchar(42) NOT NULL,
     network TEXT NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS keys 
+(
+    name TEXT NOT NULL PRIMARY KEY,
+    path TEXT UNIQUE NOT NULL
+);
