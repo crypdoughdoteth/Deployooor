@@ -1,23 +1,119 @@
-use std::process::Command;
+use std::{env, path::Path, process::Command};
+
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ContractDeployment {
+    pub fee: String, 
+    pub deployment_address: String, 
+}
 
 #[tauri::command]
-fn deploy_contract(path: String, pass_path: String) -> Result<(), String> {
+pub fn deploy_contract(root_path: &str /* pass_path: String*/) -> Result<ContractDeployment, String> {
+    env::set_current_dir(Path::new(root_path)).unwrap();
     let output = Command::new("cargo")
         .arg("stylus")
         .arg("deploy")
-        .arg("--keystore-path")
-        .arg(path)
-        .arg("--keystore-password-path")
-        .arg(pass_path)
+        .arg("--private-key-path")
+        .arg("pk.txt")
+        // .arg("--keystore-path")
+        // .arg(path)
+        // .arg("--keystore-password-path")
+        // .arg(pass_path)
         .output()
         .map_err(|e| e.to_string())?;
 
-    Ok(())
+    if !output.status.success() {
+        Err("Failed to calculate gas costs".to_string())?
+    }
+
+    let res = String::from_utf8_lossy(&output.stdout)
+        .to_string()
+        .split_once("Deploying program to address \u{1b}[38;5;48;1m")
+        .unwrap()
+        .1
+        .to_owned();
+    let (address, rest) = res.split_once("\u{1b}").unwrap();
+    let gas_fee = rest
+        .split_once("Transaction fee: \u{1b}[38;5;48;1m")
+        .unwrap()
+        .1
+        .split_once("\u{1b}")
+        .unwrap()
+        .0;
+
+
+
+    Ok(ContractDeployment{
+        fee: gas_fee.to_string(), 
+        deployment_address: address.to_string(),
+    })
 }
 
-// fn estimate_gas() {
-//
-// }
+#[tauri::command]
+pub fn estimate_gas(root_path: &str /*pass_path: String*/) -> Result<u128, String> {
+    env::set_current_dir(Path::new(root_path)).unwrap();
+    let output = Command::new("cargo")
+        .arg("stylus")
+        .arg("deploy")
+        //.arg("--keystore-path")
+        //.arg(path)
+        //.arg("--keystore-password-path")
+        //.arg(pass_path)
+        .arg("--private-key-path")
+        .arg("pk.txt")
+        .arg("--estimate-gas-only")
+        .output()
+        .map_err(|e| e.to_string())?;
+
+    if !output.status.success() {
+        Err("Failed to calculate gas costs".to_string())?
+    }
+
+    let output_str: String = String::from_utf8_lossy(&output.stdout).to_string();
+    Ok(output_str
+        .split_whitespace()
+        .rev()
+        .nth(2)
+        .ok_or_else(|| "Failed to parse Cargo Stylus CLI output".to_string())?
+        //split on the left
+        .split_once("m")
+        .ok_or_else(|| "Failed to parse Cargo Stylus CLI output".to_string())?
+        .1
+        //split on the right
+        .split_once("\u{1b}")
+        .ok_or_else(|| "Failed to parse Cargo Stylus CLI output".to_string())?
+        .0
+        .parse::<u128>()
+        .map_err(|e| e.to_string())?)
+}
 
 // pk file path (keystore only)
 // set cwd to the root of the project
+
+#[cfg(test)]
+pub mod test {
+    use super::estimate_gas;
+    use crate::stylus::deploy_contract;
+
+    #[test]
+    fn gas_estimation() {
+        let path = "../../../testing/first/";
+        assert!(estimate_gas(path).is_ok_and(|x| {
+            println!("{}", x);
+            x != 0
+        }));
+    }
+
+    #[test]
+    fn deploy() {
+        let path = "../../../testing/first/";
+        let res = deploy_contract(path)
+            .unwrap();
+
+        println!(
+            "{:#?}",
+            res
+        );
+    }
+}
