@@ -16,8 +16,8 @@ use vyper_rs::vyper::{Evm, Vyper};
 pub mod db;
 use db::*;
 use key_tree::{create_key, get_key_by_name, list_keys, load_keys_to_state, AppState};
+use stylus::{stylus_deploy_contract, stylus_estimate_gas};
 use tabled::{settings::Style, Table};
-
 #[derive(Serialize, Deserialize)]
 struct ContractWalletData {
     abi: Value,
@@ -27,7 +27,7 @@ struct ContractWalletData {
 #[derive(Serialize, Deserialize)]
 struct Config {
     provider: String,
-    etherscan_api: String, 
+    etherscan_api: String,
 }
 
 impl ContractWalletData {
@@ -69,9 +69,7 @@ async fn compile_version(path: String, version: String) -> Result<ContractWallet
     let cpath: &Path = &Path::new(&path);
     println!("{:?}", cpath);
     let mut contract = Vyper::new(cpath);
-    contract
-        .compile_ver(&ver)
-        .map_err(|e| e.to_string())?;
+    contract.compile_ver(&ver).map_err(|e| e.to_string())?;
     contract.gen_abi().map_err(|e| e.to_string())?;
     let abifile = File::open(&contract.abi).map_err(|e| e.to_string())?;
     let reader = BufReader::new(abifile);
@@ -85,7 +83,10 @@ async fn compile_version(path: String, version: String) -> Result<ContractWallet
 #[tauri::command]
 async fn set_config(provider: String, etherscan_api: String) -> Result<Config, String> {
     let config_path: PathBuf = PathBuf::from("./vyper_deployer_config.json");
-    let conf: Config = Config { provider, etherscan_api };
+    let conf: Config = Config {
+        provider,
+        etherscan_api,
+    };
     let file: File = File::create(config_path).map_err(|e| e.to_string())?;
     to_writer_pretty(file, &conf).map_err(|e| e.to_string())?;
     Ok(conf)
@@ -109,12 +110,14 @@ async fn db_write(deployment_data: Deployment) -> Result<(), String> {
         .to_string();
     let query_result = sqlx::query_as!(
         Deployment,
-        "INSERT INTO deployments VALUES ($1, $2, $3, $4, $5)",
+        "INSERT INTO deployments VALUES ($1, $2, $3, $4, $5, $6, $7)",
         name,
         deployment_data.deployer_address,
         deployment_data.deploy_date,
         deployment_data.sc_address,
-        deployment_data.network
+        deployment_data.network,
+        deployment_data.fee,
+        deployment_data.verified,
     )
     .execute(db)
     .await
@@ -155,6 +158,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             db_write,
             list_keys,
             create_key,
+            stylus_deploy_contract,
+            stylus_estimate_gas
         ])
         .manage(AppState {
             tree: Mutex::new(BTreeMap::new()),

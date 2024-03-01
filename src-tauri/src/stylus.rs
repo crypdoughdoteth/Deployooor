@@ -9,7 +9,7 @@ pub struct ContractDeployment {
 }
 
 #[tauri::command]
-pub fn deploy_contract(root_path: &str /* pass_path: String*/) -> Result<ContractDeployment, String> {
+pub fn stylus_deploy_contract(root_path: &str /* pass_path: String*/) -> Result<ContractDeployment, String> {
     env::set_current_dir(Path::new(root_path)).unwrap();
     let output = Command::new("cargo")
         .arg("stylus")
@@ -51,7 +51,7 @@ pub fn deploy_contract(root_path: &str /* pass_path: String*/) -> Result<Contrac
 }
 
 #[tauri::command]
-pub fn estimate_gas(root_path: &str /*pass_path: String*/) -> Result<u128, String> {
+pub fn stylus_estimate_gas(root_path: &str /*pass_path: String*/) -> Result<u128, String> {
     env::set_current_dir(Path::new(root_path)).unwrap();
     let output = Command::new("cargo")
         .arg("stylus")

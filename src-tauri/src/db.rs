@@ -18,6 +18,8 @@ pub struct Deployment {
     pub deploy_date: String,
     pub sc_address: String,
     pub network: String,
+    pub fee: String,
+    pub verified: bool, 
 }
 
 impl Database {
