@@ -1,11 +1,11 @@
-use once_cell::sync::OnceCell;
+use std::sync::OnceLock;
 use serde::{Deserialize, Serialize};
 use anyhow::Result;
 use sqlx::{FromRow, Sqlite, Pool, migrate::MigrateDatabase};
 use tabled::Tabled;
 
 pub const DB_URL: &str = "sqlite://deployer.db";
-pub static DB_POOL: OnceCell<Pool<Sqlite>> = OnceCell::new();
+pub static DB_POOL: OnceLock<Pool<Sqlite>> = OnceLock::new();
 
 pub struct Database {
     pub store: Pool<Sqlite>,
@@ -18,6 +18,8 @@ pub struct Deployment {
     pub deploy_date: String,
     pub sc_address: String,
     pub network: String,
+    pub fee: String,
+    pub verified: bool, 
 }
 
 impl Database {
@@ -31,4 +33,3 @@ impl Database {
         Ok(())
     }
 }
-
