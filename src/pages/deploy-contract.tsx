@@ -124,9 +124,47 @@ export const DeployContractPage = () => {
     });
   };
 
-  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const deploySolidityContract = async () => {
+    const res = await invoke('compile_solidity', {
+      filePath: pathToContract,
+      outputPath: '/Users/dhaiwat/code/VyperDeployooor/src-tauri',
+    });
+    const json = JSON.parse(res);
+    const abi = new ethers.Interface(JSON.parse(json.abi));
+    const initcode = json.bytecode;
+    
+    const provider = new ethers.JsonRpcProvider(config?.provider);
+    const wallet = (
+      await ethers.Wallet.fromEncryptedJson(
+        JSON.stringify(testKeystore),
+        'abcd'
+      )
+    ).connect(provider);
+
+    const contractFactory = new ethers.ContractFactory(
+      abi,
+      {
+        object: initcode,
+      },
+      wallet
+    );
+
+    console.log(constructorArgs);
+
+    const tx = await contractFactory.deploy();
+    await tx.waitForDeployment();
+    const contractAddress = await tx.getAddress();
+
+    await writeDeploymentToDb({
+      deploymentAddress: contractAddress,
+      deployerAddress: wallet.address,
+      smartContractName: contractName,
+      chainId: (await provider.getNetwork()).chainId.toString(),
+    });
+  }
+
+  const onSubmit = async () => {
     try {
-      e.preventDefault();
       setStatus('loading');
 
       if (contractType === 'vyper') {
@@ -135,6 +173,10 @@ export const DeployContractPage = () => {
 
       if (contractType === 'stylus') {
         await deployStylusContract();
+      }
+
+      if (contractType === 'solidity') {
+        await deploySolidityContract();
       }
     } catch (error) {
       console.log(error);
@@ -236,7 +278,7 @@ export const DeployContractPage = () => {
   }
 
   return (
-    <form className='flex flex-col gap-4' onSubmit={onSubmit}>
+    <div className='flex flex-col gap-4'>
       <div className='form-control'>
         <label htmlFor='contractType' className='label'>
           Contract Type
@@ -247,9 +289,9 @@ export const DeployContractPage = () => {
           value={contractType}
           onChange={(e) => setContractType(e.target.value as ContractType)}
         >
-          <option value='vyper'>Vyper</option>
-          <option value='stylus'>Stylus</option>
-          <option value='solidity'>Solidity</option>
+          <option value='vyper'>Vyper 🐍</option>
+          <option value='stylus'>Stylus 🖋️</option>
+          <option value='solidity'>Solidity 🧱</option>
         </select>
       </div>
 
@@ -337,12 +379,12 @@ export const DeployContractPage = () => {
         Estimate Gas
       </button>
 
-      <button className='btn btn-primary' type='submit'>
+      <button className='btn btn-primary' onClick={onSubmit}>
         {status === 'loading' && (
           <span className='loading loading-spinner'></span>
         )}
         Deploy Contract
       </button>
-    </form>
+    </div>
   );
 };

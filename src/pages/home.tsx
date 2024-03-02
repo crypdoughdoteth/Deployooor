@@ -24,7 +24,7 @@ export const HomePage = () => {
   return (
     <>
       {configDoesntExist && (
-        <div className='text-center'>
+        <div className='text-left mt-4'>
           <p>No config found.</p>
         </div>
       )}

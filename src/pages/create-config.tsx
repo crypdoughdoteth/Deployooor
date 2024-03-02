@@ -42,7 +42,7 @@ export const CreateConfigPage = () => {
     <form className='flex flex-col gap-4' onSubmit={onSubmit}>
       <div className='form-control'>
         <label htmlFor='providerUrl' className='label'>
-          Provider URL
+          ⛓️ Provider URL
         </label>
         <input
           className='input input-bordered'
@@ -55,7 +55,7 @@ export const CreateConfigPage = () => {
 
       <div className='form-control'>
         <label htmlFor='etherscanApiKey' className='label'>
-          Etherscan API key
+          🔑 Etherscan API key
         </label>
         <input
           className='input input-bordered'

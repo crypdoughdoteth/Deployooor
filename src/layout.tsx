@@ -31,7 +31,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
       <Toaster />
       <div className='container p-6'>
         <div className='flex gap-2 items-center'>
-          <h1 className='text-2xl font-bold'>Deployooor</h1>
+          <h1 className='text-2xl font-bold'>🚀 Deployooor</h1>
 
           <button
             className='btn'
@@ -62,7 +62,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
           </button>
         </div>
 
-        {children}
+        <main className='p-12'>{children}</main>
       </div>
     </PageContext.Provider>
   );
