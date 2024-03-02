@@ -277,7 +277,7 @@ mod tests {
         let contract_address= "";
         let source_code = "";
         let contract_name= "";
-        let compiler_version;=""
+        let compiler_version="";
         let optimization_used="";
         let runs= "";
         match etherscan_verification(api_key , contract_address , source_code , contract_name , compiler_version , optimiation_used , runs) {

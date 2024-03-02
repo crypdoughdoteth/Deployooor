@@ -2,7 +2,7 @@ use ethers::{core::rand::thread_rng, signers::Wallet};
 use serde::{Deserialize, Serialize};
 use std::{
     collections::BTreeMap,
-    path::{Path, PathBuf},
+    path::PathBuf,
     sync::Mutex,
 };
 use tauri::State;
@@ -21,7 +21,7 @@ pub struct Account {
 
 #[tauri::command]
 pub async fn create_key(
-    path: String,
+    mut path: String,
     nickname: String,
     password: String,
     state: State<'_, AppState>,
@@ -29,12 +29,13 @@ pub async fn create_key(
     // create keystore
     Wallet::new_keystore(&path, &mut thread_rng(), password, Some(&nickname))
         .map_err(|e| e.to_string())?;
+    path.push_str(format!("/{}", &nickname).as_str());
     state
         .inner()
         .tree
         .lock()
         .unwrap()
-        .insert(path.clone(), PathBuf::from(Path::new(&nickname)));
+        .insert(nickname.clone(), PathBuf::from(path.clone()));
     sqlx::query!(
         "INSERT INTO keys (name, path) VALUES ($1, $2)",
         nickname,
