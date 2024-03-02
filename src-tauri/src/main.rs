@@ -4,11 +4,12 @@ pub mod key_tree;
 pub mod stylus;
 use serde::{Deserialize, Serialize};
 use serde_json::{to_writer_pretty, Value};
+
 use sqlx::SqlitePool;
 use std::{
     collections::BTreeMap,
     fs::File,
-    io::BufReader,
+    io::{self, BufReader, Write},
     path::{Path, PathBuf},
     sync::Mutex,
 };
@@ -18,6 +19,28 @@ use db::*;
 use key_tree::{create_key, get_key_by_name, list_keys, load_keys_to_state, AppState};
 use stylus::{stylus_deploy_contract, stylus_estimate_gas};
 use tabled::{settings::Style, Table};
+use std::process::Command;
+use std::error::Error;
+use reqwest::Client;
+//Structs for solc 
+
+#[derive(Serialize, Deserialize, Debug)]
+struct SolcOutput {
+    contracts: Contracts,
+    version: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+struct Contracts {
+    #[serde(rename = "src/soliditylayout/contracts/storage.sol:Owner")]
+    owner: Contract,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+struct Contract {
+    abi: Vec<Value>, // Using serde_json::Value to handle the complexity of ABI items
+    bin: String,
+}
 #[derive(Serialize, Deserialize)]
 struct ContractWalletData {
     abi: Value,
@@ -167,3 +190,101 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .run(tauri::generate_context!())?;
     Ok(())
 }
+
+#[tauri::command]
+fn compile_solidity(file_path: &str, output_path: &str) -> Result<(String, String), Box<dyn Error>> {
+    let solc_path = "/opt/homebrew/bin/solc";
+
+    let output = Command::new(solc_path)
+        .args([
+            "--combined-json", "abi,bin,metadata",
+            "--overwrite",
+            file_path,
+            "-o", output_path,
+        ])
+        .output()?;
+
+    if !output.status.success() {
+        let error_message = format!("Command executed with failing error code: {}", String::from_utf8_lossy(&output.stderr));
+        return Err(Box::new(std::io::Error::new(std::io::ErrorKind::Other, error_message)));
+    }
+
+    let json_file_path = format!("{}/combined.json", output_path);
+    let file = File::open(json_file_path)?;
+    let reader = BufReader::new(file);
+
+    let solc_output: SolcOutput = serde_json::from_reader(reader)?;
+    let contract = solc_output.contracts.owner;
+
+    let abi = serde_json::to_string_pretty(&contract.abi)?; // Serialize the ABI to a pretty JSON string
+    let bytecode = contract.bin;
+
+    // Optionally, write the ABI to a file
+    let mut file = File::create(format!("{}/output.json", output_path))?;
+    file.write_all(abi.as_bytes())?;
+
+    Ok((abi, bytecode))
+}
+
+// Where i can get all this params without asking for it --> Fix this to put default value
+async fn etherscan_verification(api_key: &str , contract_address: &str , source_code : &str , contract_name: &str , compiler_version : &str , optimization_used : &str , runs: &str) -> Result<(), Box<dyn std::error::Error>> {
+    //Example
+    //let compiler_version = "v0.8.0+commit.c7dfd78e"; // Compiler version used
+    //let optimization_used = "1"; // Whether optimization was used (0 = No, 1 = Yes)
+    //let runs = "200"; // Optimization runs
+    // Additional parameters like constructor arguments, library addresses, etc., may be require
+    let client = Client::new();
+    let res = client.post("https://api.etherscan.io/api")
+        .form(&[
+            ("apikey", api_key),
+            ("module", "contract"),
+            ("action", "verifysourcecode"),
+            ("contractaddress", contract_address),
+            ("sourceCode", source_code),
+            ("contractname", contract_name),
+            ("compilerversion", compiler_version),
+            ("optimizationUsed", optimization_used),
+            ("runs", runs),
+            // Add other form fields as needed
+        ])
+        .send()
+        .await?;
+
+    let response_text = res.text().await?;
+    println!("Response: {}", response_text);
+
+    Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test] // Changed to synchronous test for simplicity
+    fn test_solc() {
+        let file_path = "src/soliditylayout/contracts/storage.sol";
+        let output_path = "src/soliditylayout/contracts";
+        //let file_path = "/Users/protocolw/Public/Rustcodes/Protocoldenver/VyperDeployooor/src-tauri/src/soliditylayout/contracts/storage.sol"; // Update this path
+        match compile_solidity(file_path , output_path) {
+            Ok(resp) => println!("{:?}", resp),
+            Err(e) => eprintln!("Compilation failed: {}", e),
+        }
+    }
+
+    fn test_etherscan_verification(){
+        // send me tokens 0x2faC34866f272f7C7649823FEE98C83E8ddF2000
+        let api_key = "";
+        let contract_address= "";
+        let source_code = "";
+        let contract_name= "";
+        let compiler_version;=""
+        let optimization_used="";
+        let runs= "";
+        match etherscan_verification(api_key , contract_address , source_code , contract_name , compiler_version , optimiation_used , runs) {
+            Ok(resp) => println!("{:?}", resp),
+            Err(e) => eprintln!("Compilation failed: {}", e),
+        }
+        
+    }
+}
+
