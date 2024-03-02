@@ -25,7 +25,7 @@ pub fn stylus_deploy_contract(
         .arg("--keystore-path")
         .arg(keystore_path)
         .arg("--keystore-password-path")
-        .arg(pass)
+        .arg("./password.txt")
         .output()
         .map_err(|e| e.to_string())?;
 
@@ -120,4 +120,5 @@ pub mod test {
 
         println!("{:#?}", res);
     }
+
 }
