@@ -5,7 +5,8 @@ export enum Pages {
   Home = 'home',
   GenerateKeystore = 'generate-keystore',
   CreateConfig = 'create-config',
-  DeployContract = 'deploy-contract'
+  DeployContract = 'deploy-contract',
+  Deployments = 'deployments',
 }
 
 export const PageContext = createContext<{
@@ -27,27 +28,33 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
       }}
     >
       <div className='container p-6'>
-        {
-          <pre>
-            {JSON.stringify(currentPage)}
-          </pre>
-        }
-
         <div className='flex gap-2 items-center'>
-          <button className='btn' onClick={() => setCurrentPage(Pages.Home)}>
-            Home
+          <button
+            className='btn'
+            onClick={() => setCurrentPage(Pages.DeployContract)}
+          >
+            Deploy Contract
           </button>
 
-          <button className='btn' onClick={() => setCurrentPage(Pages.GenerateKeystore)}>
+          <button
+            className='btn'
+            onClick={() => setCurrentPage(Pages.GenerateKeystore)}
+          >
             Generate Keystore
           </button>
 
-          <button className='btn' onClick={() => setCurrentPage(Pages.CreateConfig)}>
+          <button
+            className='btn'
+            onClick={() => setCurrentPage(Pages.CreateConfig)}
+          >
             Config
           </button>
 
-          <button className='btn' onClick={() => setCurrentPage(Pages.DeployContract)}>
-            Deploy Contract
+          <button
+            className='btn'
+            onClick={() => setCurrentPage(Pages.Deployments)}
+          >
+            Deployments
           </button>
         </div>
 

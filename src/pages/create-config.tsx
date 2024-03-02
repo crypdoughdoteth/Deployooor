@@ -1,29 +1,31 @@
 import { useEffect, useState } from 'react';
 import { useStatus } from '../hooks';
-import { invoke } from '@tauri-apps/api/tauri'
+import { invoke } from '@tauri-apps/api/tauri';
 
 export const CreateConfigPage = () => {
   const [providerUrl, setProviderUrl] = useState('');
-  const [keystoreName, setKeystoreName] = useState('');
+  const [etherscanApiKey, setEtherscanApiKey] = useState('');
   const [status, setStatus] = useStatus('idle');
 
   useEffect(() => {
     (async () => {
-      const config = await invoke('get_config') as {
+      const config = (await invoke('get_config')) as {
         provider: string;
-        keystore: string;
+        etherscan_api: string;
       };
       setProviderUrl(config.provider);
-      setKeystoreName(config.keystore);
-    })()
-  }, [])
+      setEtherscanApiKey(config.etherscan_api);
+    })();
+  }, []);
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     try {
       e.preventDefault();
-      setStatus('loading')
-      const keystorePath = `./${keystoreName}`
-      const res =await invoke('set_config', { provider: providerUrl, keystore: keystorePath });
+      setStatus('loading');
+      const res = await invoke('set_config', {
+        provider: providerUrl,
+        etherscanApi: etherscanApiKey,
+      });
       console.log(res);
     } catch (error) {
       console.log(error);
@@ -49,15 +51,15 @@ export const CreateConfigPage = () => {
       </div>
 
       <div className='form-control'>
-        <label htmlFor='keystoreName' className='label'>
-          Keystore Name
+        <label htmlFor='etherscanApiKey' className='label'>
+          Etherscan API key
         </label>
         <input
           className='input input-bordered'
           type='text'
-          id='keystoreName'
-          value={keystoreName}
-          onChange={(e) => setKeystoreName(e.target.value)}
+          id='etherscanApiKey'
+          value={etherscanApiKey}
+          onChange={(e) => setEtherscanApiKey(e.target.value)}
         />
       </div>
 
@@ -66,9 +68,7 @@ export const CreateConfigPage = () => {
       </button>
 
       <pre>
-        <code>
-          {JSON.stringify(status, null, 2)}
-        </code>
+        <code>{JSON.stringify(status, null, 2)}</code>
       </pre>
     </form>
   );
