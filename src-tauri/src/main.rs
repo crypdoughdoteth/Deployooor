@@ -21,6 +21,7 @@ use stylus::{stylus_deploy_contract, stylus_estimate_gas};
 use tabled::{settings::Style, Table};
 use std::process::Command;
 use std::error::Error;
+use reqwest::Client;
 //Structs for solc 
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -225,6 +226,36 @@ fn compile_solidity(file_path: &str, output_path: &str) -> Result<(String, Strin
     Ok((abi, bytecode))
 }
 
+// Where i can get all this params without asking for it --> Fix this to put default value
+async fn etherscan_verification(api_key: &str , contract_address: &str , source_code : &str , contract_name: &str , compiler_version : &str , optimization_used : &str , runs: &str) -> Result<(), Box<dyn std::error::Error>> {
+    //Example
+    //let compiler_version = "v0.8.0+commit.c7dfd78e"; // Compiler version used
+    //let optimization_used = "1"; // Whether optimization was used (0 = No, 1 = Yes)
+    //let runs = "200"; // Optimization runs
+    // Additional parameters like constructor arguments, library addresses, etc., may be require
+    let client = Client::new();
+    let res = client.post("https://api.etherscan.io/api")
+        .form(&[
+            ("apikey", api_key),
+            ("module", "contract"),
+            ("action", "verifysourcecode"),
+            ("contractaddress", contract_address),
+            ("sourceCode", source_code),
+            ("contractname", contract_name),
+            ("compilerversion", compiler_version),
+            ("optimizationUsed", optimization_used),
+            ("runs", runs),
+            // Add other form fields as needed
+        ])
+        .send()
+        .await?;
+
+    let response_text = res.text().await?;
+    println!("Response: {}", response_text);
+
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -238,6 +269,22 @@ mod tests {
             Ok(resp) => println!("{:?}", resp),
             Err(e) => eprintln!("Compilation failed: {}", e),
         }
+    }
+
+    fn test_etherscan_verification(){
+        // send me tokens 0x2faC34866f272f7C7649823FEE98C83E8ddF2000
+        let api_key = "";
+        let contract_address= "";
+        let source_code = "";
+        let contract_name= "";
+        let compiler_version;=""
+        let optimization_used="";
+        let runs= "";
+        match etherscan_verification(api_key , contract_address , source_code , contract_name , compiler_version , optimiation_used , runs) {
+            Ok(resp) => println!("{:?}", resp),
+            Err(e) => eprintln!("Compilation failed: {}", e),
+        }
+        
     }
 }
 
