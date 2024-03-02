@@ -182,7 +182,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             list_keys,
             create_key,
             stylus_deploy_contract,
-            stylus_estimate_gas
+            stylus_estimate_gas,
+            compile_solidity
         ])
         .manage(AppState {
             tree: Mutex::new(BTreeMap::new()),
@@ -192,7 +193,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[tauri::command]
-fn compile_solidity(file_path: &str, output_path: &str) -> Result<(String, String), Box<dyn Error>> {
+fn compile_solidity(file_path: &str, output_path: &str) -> Result<(String, String), String> {
     let solc_path = "/opt/homebrew/bin/solc";
 
     let output = Command::new(solc_path)
@@ -202,30 +203,35 @@ fn compile_solidity(file_path: &str, output_path: &str) -> Result<(String, Strin
             file_path,
             "-o", output_path,
         ])
-        .output()?;
+        .output()
+        .map_err(|e| e.to_string())?; // Convert IO errors to String
 
     if !output.status.success() {
         let error_message = format!("Command executed with failing error code: {}", String::from_utf8_lossy(&output.stderr));
-        return Err(Box::new(std::io::Error::new(std::io::ErrorKind::Other, error_message)));
+        return Err(error_message); // Directly return the error message as a String
     }
 
     let json_file_path = format!("{}/combined.json", output_path);
-    let file = File::open(json_file_path)?;
+    let file = File::open(&json_file_path)
+        .map_err(|e| e.to_string())?; // Convert IO errors to String
     let reader = BufReader::new(file);
 
-    let solc_output: SolcOutput = serde_json::from_reader(reader)?;
+    let solc_output: SolcOutput = serde_json::from_reader(reader)
+        .map_err(|e| e.to_string())?; // Convert serde_json errors to String
     let contract = solc_output.contracts.owner;
 
-    let abi = serde_json::to_string_pretty(&contract.abi)?; // Serialize the ABI to a pretty JSON string
+    let abi = serde_json::to_string_pretty(&contract.abi)
+        .map_err(|e| e.to_string())?; // Convert serde_json errors to String
     let bytecode = contract.bin;
 
     // Optionally, write the ABI to a file
-    let mut file = File::create(format!("{}/output.json", output_path))?;
-    file.write_all(abi.as_bytes())?;
+    let mut file = File::create(format!("{}/output.json", output_path))
+        .map_err(|e| e.to_string())?; // Convert IO errors to String
+    file.write_all(abi.as_bytes())
+        .map_err(|e| e.to_string())?; // Convert IO errors to String
 
     Ok((abi, bytecode))
 }
-
 // Where i can get all this params without asking for it --> Fix this to put default value
 async fn etherscan_verification(api_key: &str , contract_address: &str , source_code : &str , contract_name: &str , compiler_version : &str , optimization_used : &str , runs: &str) -> Result<(), Box<dyn std::error::Error>> {
     //Example
@@ -270,21 +276,17 @@ mod tests {
             Err(e) => eprintln!("Compilation failed: {}", e),
         }
     }
-
+    #[test]
     fn test_etherscan_verification(){
         // send me tokens 0x2faC34866f272f7C7649823FEE98C83E8ddF2000
-        let api_key = "";
-        let contract_address= "";
-        let source_code = "";
-        let contract_name= "";
-        let compiler_version;=""
-        let optimization_used="";
-        let runs= "";
-        match etherscan_verification(api_key , contract_address , source_code , contract_name , compiler_version , optimiation_used , runs) {
-            Ok(resp) => println!("{:?}", resp),
-            Err(e) => eprintln!("Compilation failed: {}", e),
-        }
-        
+        let api_key = "D7MEF2GFCVH4WEC69MSAIHTQ64F3U7EXMU";
+        let contract_address= "0x91BD3394ce59fe635253E3739D25Af07DD4952f4";
+        let source_code = "src/soliditylayout/contracts/storage.sol";
+        let contract_name= "Owner";
+        let compiler_version="0.8.24+commit.e11b9ed9";
+        let optimization_used="1";
+        let runs= "200";
+        let verification = etherscan_verification(api_key , contract_address , source_code , contract_name , compiler_version , optimization_used , runs); 
     }
 }
 
