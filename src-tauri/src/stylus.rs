@@ -104,21 +104,21 @@ pub mod test {
     use super::stylus_estimate_gas;
     use crate::stylus::stylus_deploy_contract;
 
-    #[test]
-    fn gas_estimation() {
-        let path = "/Users/crypdoughdoteth/dev/testing/first/";
-        assert!(stylus_estimate_gas(path).is_ok_and(|x| {
-            println!("{}", x);
-            x != 0
-        }));
-    }
-
-    #[test]
-    fn deploy() {
-        let path = "/Users/crypdoughdoteth/dev/testing/first/";
-        let res = stylus_deploy_contract(path).unwrap();
-
-        println!("{:#?}", res);
-    }
+    // #[test]
+    // fn gas_estimation() {
+    //     let path = "/Users/crypdoughdoteth/dev/testing/first/";
+    //     assert!(stylus_estimate_gas(path).is_ok_and(|x| {
+    //         println!("{}", x);
+    //         x != 0
+    //     }));
+    // }
+    //
+    // #[test]
+    // fn deploy() {
+    //     let path = "/Users/crypdoughdoteth/dev/testing/first/";
+    //     let res = stylus_deploy_contract(path).unwrap();
+    //
+    //     println!("{:#?}", res);
+    // }
 
 }

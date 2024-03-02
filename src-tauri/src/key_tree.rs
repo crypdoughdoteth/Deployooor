@@ -1,10 +1,6 @@
 use ethers::{core::rand::thread_rng, signers::Wallet};
 use serde::{Deserialize, Serialize};
-use std::{
-    collections::BTreeMap,
-    path::PathBuf,
-    sync::Mutex,
-};
+use std::{collections::BTreeMap, path::PathBuf, sync::Mutex};
 use tauri::State;
 
 use crate::DB_POOL;
@@ -93,4 +89,12 @@ pub async fn load_keys_to_state() -> Result<BTreeMap<String, PathBuf>, String> {
 
 // Remove key from tree and database
 
+#[cfg(test)]
+pub mod tests {
+    use ethers::{core::rand::thread_rng, signers::Wallet};
 
+    #[test]
+    pub fn key_gen() {
+        Wallet::new_keystore("./", &mut thread_rng(), "123", Some("testing_keystore")).unwrap();
+    }
+}
