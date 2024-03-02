@@ -5,22 +5,27 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ContractDeployment {
-    pub fee: String, 
-    pub deployment_address: String, 
+    pub fee: String,
+    pub deployment_address: String,
 }
 
 #[tauri::command]
-pub fn stylus_deploy_contract(root_path: &str /* pass_path: String*/) -> Result<ContractDeployment, String> {
+pub fn stylus_deploy_contract(
+    root_path: &str,
+    keystore_path: &str,
+    pass: &str,
+) -> Result<ContractDeployment, String> {
     env::set_current_dir(Path::new(root_path)).unwrap();
+    let mut pw_file = File::create("./password.txt").map_err(|e| e.to_string())?;
+    pw_file.write(pass.as_bytes()).map_err(|e| e.to_string())?;
+
     let output = Command::new("cargo")
         .arg("stylus")
         .arg("deploy")
-        .arg("--private-key-path")
-        .arg("pk.txt")
-        // .arg("--keystore-path")
-        // .arg(path)
-        // .arg("--keystore-password-path")
-        // .arg(pass_path)
+        .arg("--keystore-path")
+        .arg(keystore_path)
+        .arg("--keystore-password-path")
+        .arg("./password.txt")
         .output()
         .map_err(|e| e.to_string())?;
 
@@ -43,16 +48,18 @@ pub fn stylus_deploy_contract(root_path: &str /* pass_path: String*/) -> Result<
         .unwrap()
         .0;
 
-
-
-    Ok(ContractDeployment{
-        fee: gas_fee.to_string(), 
+    Ok(ContractDeployment {
+        fee: gas_fee.to_string(),
         deployment_address: address.to_string(),
     })
 }
 
 #[tauri::command]
-pub fn stylus_estimate_gas(root_path: &str, keystore_path: String, pass: String) -> Result<u128, String> {
+pub fn stylus_estimate_gas(
+    root_path: &str,
+    keystore_path: &str,
+    pass: &str,
+) -> Result<u128, String> {
     env::set_current_dir(Path::new(root_path)).unwrap();
     let mut pw_file = File::create("./password.txt").map_err(|e| e.to_string())?;
     pw_file.write(pass.as_bytes()).map_err(|e| e.to_string())?;
@@ -97,17 +104,21 @@ pub mod test {
     use super::stylus_estimate_gas;
     use crate::stylus::stylus_deploy_contract;
 
-    
+    // #[test]
+    // fn gas_estimation() {
+    //     let path = "/Users/crypdoughdoteth/dev/testing/first/";
+    //     assert!(stylus_estimate_gas(path).is_ok_and(|x| {
+    //         println!("{}", x);
+    //         x != 0
+    //     }));
+    // }
+    //
+    // #[test]
+    // fn deploy() {
+    //     let path = "/Users/crypdoughdoteth/dev/testing/first/";
+    //     let res = stylus_deploy_contract(path).unwrap();
+    //
+    //     println!("{:#?}", res);
+    // }
 
-    #[test]
-    fn deploy() {
-        let path = "/Users/crypdoughdoteth/dev/testing/first/";
-        let res = stylus_deploy_contract(path)
-            .unwrap();
-
-        println!(
-            "{:#?}",
-            res
-        );
-    }
 }

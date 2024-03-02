@@ -9,7 +9,7 @@ use sqlx::SqlitePool;
 use std::{
     collections::BTreeMap,
     fs::File,
-    io::{self, BufReader, Write},
+    io::{BufReader, Write},
     path::{Path, PathBuf},
     sync::Mutex,
 };
@@ -276,8 +276,9 @@ mod tests {
             Err(e) => eprintln!("Compilation failed: {}", e),
         }
     }
-    #[test]
-    fn test_etherscan_verification(){
+
+    #[tokio::test]
+    async fn test_etherscan_verification(){
         // send me tokens 0x2faC34866f272f7C7649823FEE98C83E8ddF2000
         let api_key = "D7MEF2GFCVH4WEC69MSAIHTQ64F3U7EXMU";
         let contract_address= "0x91BD3394ce59fe635253E3739D25Af07DD4952f4";
