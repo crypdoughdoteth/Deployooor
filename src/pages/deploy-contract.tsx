@@ -3,6 +3,7 @@ import { useStatus } from '../hooks';
 import { invoke } from '@tauri-apps/api/tauri';
 import { ethers } from 'ethers';
 import testKeystore from '../test_keystore.json';
+import { toast } from 'react-hot-toast';
 
 type ContractType = 'vyper' | 'stylus' | 'solidity';
 
@@ -94,7 +95,6 @@ export const DeployContractPage = () => {
     await tx.waitForDeployment();
     const contractAddress = await tx.getAddress();
 
-
     await writeDeploymentToDb({
       deploymentAddress: contractAddress,
       deployerAddress: wallet.address,
@@ -139,8 +139,10 @@ export const DeployContractPage = () => {
     } catch (error) {
       console.log(error);
       setStatus('error');
+      toast.error('Error deploying contract');
     } finally {
       setStatus('success');
+      toast.success('Contract deployed');
     }
   };
 
@@ -222,8 +224,10 @@ export const DeployContractPage = () => {
     } catch (error) {
       console.log(error);
       setStatus('error');
+      toast.error('Error estimating gas');
     } finally {
       setStatus('success');
+      toast.success('Gas estimated');
     }
   };
 
@@ -320,24 +324,25 @@ export const DeployContractPage = () => {
       </div>
 
       {gasEstimate && (
-        <span className='text-sm'>Gas Estimate: {gasEstimate}</span>
+        <span className='text-sm'>Gas Estimate: {gasEstimate} wei</span>
       )}
 
       <button
         className='btn btn-outline'
-        type='submit'
         onClick={handleEstimateGas}
       >
+        {status === 'loading' && (
+          <span className='loading loading-spinner'></span>
+        )}
         Estimate Gas
       </button>
 
       <button className='btn btn-primary' type='submit'>
+        {status === 'loading' && (
+          <span className='loading loading-spinner'></span>
+        )}
         Deploy Contract
       </button>
-
-      <pre>
-        <code>{JSON.stringify(status, null, 2)}</code>
-      </pre>
     </form>
   );
 };

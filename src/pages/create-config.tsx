@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useStatus } from '../hooks';
 import { invoke } from '@tauri-apps/api/tauri';
+import { toast } from 'react-hot-toast';
 
 export const CreateConfigPage = () => {
   const [providerUrl, setProviderUrl] = useState('');
@@ -30,8 +31,10 @@ export const CreateConfigPage = () => {
     } catch (error) {
       console.log(error);
       setStatus('error');
+      toast.error('Error setting config');
     } finally {
       setStatus('success');
+      toast.success('Config set');
     }
   };
 
@@ -64,12 +67,11 @@ export const CreateConfigPage = () => {
       </div>
 
       <button className='btn btn-primary' type='submit'>
-        Create Config
+        {status === 'loading' && (
+          <span className='loading loading-spinner'></span>
+        )}
+        Set Config
       </button>
-
-      <pre>
-        <code>{JSON.stringify(status, null, 2)}</code>
-      </pre>
     </form>
   );
 };

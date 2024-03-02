@@ -1,5 +1,6 @@
 import { createContext, useState } from 'react';
 import React from 'react';
+import { Toaster } from 'react-hot-toast';
 
 export enum Pages {
   Home = 'home',
@@ -27,8 +28,11 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
         setCurrentPage: (page: Pages) => setCurrentPage(page),
       }}
     >
+      <Toaster />
       <div className='container p-6'>
         <div className='flex gap-2 items-center'>
+          <h1 className='text-2xl font-bold'>Deployooor</h1>
+
           <button
             className='btn'
             onClick={() => setCurrentPage(Pages.DeployContract)}
@@ -57,8 +61,6 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
             Deployments
           </button>
         </div>
-
-        <h1 className='text-2xl font-bold'>Welcome to Vyper Deployooor!</h1>
 
         {children}
       </div>
