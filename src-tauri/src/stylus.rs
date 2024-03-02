@@ -1,5 +1,6 @@
-use std::{env, path::Path, process::Command};
+use std::{env, fs::File, path::Path, process::Command};
 
+use ethers::core::k256::pkcs8::der::Writer;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -51,21 +52,21 @@ pub fn stylus_deploy_contract(root_path: &str /* pass_path: String*/) -> Result<
 }
 
 #[tauri::command]
-pub fn stylus_estimate_gas(root_path: &str /*pass_path: String*/) -> Result<u128, String> {
+pub fn stylus_estimate_gas(root_path: &str, keystore_path: String, pass: String) -> Result<u128, String> {
     env::set_current_dir(Path::new(root_path)).unwrap();
+    let mut pw_file = File::create("./password.txt").map_err(|e| e.to_string())?;
+    pw_file.write(pass.as_bytes()).map_err(|e| e.to_string())?;
     let output = Command::new("cargo")
         .arg("stylus")
         .arg("deploy")
-        //.arg("--keystore-path")
-        //.arg(path)
-        //.arg("--keystore-password-path")
-        //.arg(pass_path)
-        .arg("--private-key-path")
-        .arg("pk.txt")
+        .arg("--keystore-path")
+        .arg(keystore_path)
+        .arg("--keystore-password-path")
+        .arg("./password.txt")
         .arg("--estimate-gas-only")
         .output()
         .map_err(|e| e.to_string())?;
-
+    std::fs::remove_file("./password.txt").map_err(|e| e.to_string())?;
     if !output.status.success() {
         Err("Failed to calculate gas costs".to_string())?
     }
@@ -93,13 +94,13 @@ pub fn stylus_estimate_gas(root_path: &str /*pass_path: String*/) -> Result<u128
 
 #[cfg(test)]
 pub mod test {
-    use super::estimate_gas;
-    use crate::stylus::deploy_contract;
+    use super::stylus_estimate_gas;
+    use crate::stylus::stylus_deploy_contract;
 
     #[test]
     fn gas_estimation() {
-        let path = "../../../testing/first/";
-        assert!(estimate_gas(path).is_ok_and(|x| {
+        let path = "/Users/crypdoughdoteth/dev/testing/first/";
+        assert!(stylus_estimate_gas(path).is_ok_and(|x| {
             println!("{}", x);
             x != 0
         }));
@@ -107,8 +108,8 @@ pub mod test {
 
     #[test]
     fn deploy() {
-        let path = "../../../testing/first/";
-        let res = deploy_contract(path)
+        let path = "/Users/crypdoughdoteth/dev/testing/first/";
+        let res = stylus_deploy_contract(path)
             .unwrap();
 
         println!(
