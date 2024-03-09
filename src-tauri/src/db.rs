@@ -1,9 +1,9 @@
-use std::sync::OnceLock;
-use serde::{Deserialize, Serialize};
 use anyhow::Result;
-use sqlx::{FromRow, Sqlite, Pool, migrate::MigrateDatabase};
-use tabled::Tabled;
-
+use serde::{Deserialize, Serialize};
+use sqlx::{migrate::MigrateDatabase, FromRow, Pool, Sqlite};
+use std::path::PathBuf;
+use std::sync::OnceLock;
+use tabled::{settings::Style, Table, Tabled};
 pub const DB_URL: &str = "sqlite://deployer.db";
 pub static DB_POOL: OnceLock<Pool<Sqlite>> = OnceLock::new();
 
@@ -19,11 +19,11 @@ pub struct Deployment {
     pub sc_address: String,
     pub network: String,
     pub fee: String,
-    pub verified: bool, 
+    pub verified: bool,
 }
 
 impl Database {
-    pub async fn init() -> Result<()> {        
+    pub async fn init() -> Result<()> {
         if !Sqlite::database_exists(DB_URL).await.unwrap_or(false) {
             println!("Creating database {}", DB_URL);
             Sqlite::create_database(DB_URL).await?;
@@ -32,4 +32,44 @@ impl Database {
         }
         Ok(())
     }
+}
+
+#[tauri::command]
+pub async fn db_write(deployment_data: Deployment) -> Result<(), String> {
+    let db: &sqlx::Pool<sqlx::Sqlite> = DB_POOL.get().unwrap();
+    let name = PathBuf::from(&deployment_data.sc_name)
+        .file_name()
+        .unwrap()
+        .to_string_lossy()
+        .to_string();
+    let query_result = sqlx::query_as!(
+        Deployment,
+        "INSERT INTO deployments VALUES ($1, $2, $3, $4, $5, $6, $7)",
+        name,
+        deployment_data.deployer_address,
+        deployment_data.deploy_date,
+        deployment_data.sc_address,
+        deployment_data.network,
+        deployment_data.fee,
+        deployment_data.verified,
+    )
+    .execute(db)
+    .await
+    .map_err(|e| e.to_string())?;
+    println!("{query_result:?}");
+    Ok(())
+}
+
+#[tauri::command]
+pub async fn db_read() -> Result<Vec<Deployment>, String> {
+    let db: &sqlx::Pool<sqlx::Sqlite> = DB_POOL.get().unwrap();
+    let query: Vec<Deployment> =
+        sqlx::query_as!(Deployment, "SELECT * FROM deployments ORDER BY rowid DESC")
+            .fetch_all(db)
+            .await
+            .map_err(|e| e.to_string())?;
+    let mut table = Table::new(&query);
+    table.with(Style::psql());
+    println!("\n{table}");
+    Ok(query)
 }
