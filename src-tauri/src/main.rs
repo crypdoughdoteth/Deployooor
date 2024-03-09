@@ -2,6 +2,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 pub mod key_tree;
 pub mod stylus;
+pub mod deploy;
 use serde::{Deserialize, Serialize};
 use serde_json::{to_writer_pretty, Value};
 
@@ -9,20 +10,19 @@ use sqlx::SqlitePool;
 use std::{
     collections::BTreeMap,
     fs::File,
-    io::{BufReader, Write},
+    io::BufReader,
     path::{Path, PathBuf},
     sync::Mutex,
 };
-use vyper_rs::vyper::{Evm, Vyper};
+use vyper_rs::{vyper::{Evm, Vyper}, vyper};
 pub mod db;
 use db::*;
 use key_tree::{create_key, get_key_by_name, list_keys, load_keys_to_state, AppState};
+use reqwest::Client;
+use std::process::Command;
 use stylus::{stylus_deploy_contract, stylus_estimate_gas};
 use tabled::{settings::Style, Table};
-use std::process::Command;
-use std::error::Error;
-use reqwest::Client;
-//Structs for solc 
+//Structs for solc
 
 #[derive(Serialize, Deserialize, Debug)]
 struct SolcOutput {
@@ -61,22 +61,18 @@ impl ContractWalletData {
 
 #[tauri::command]
 async fn fetch_data(path: String) -> Result<ContractWalletData, String> {
-    let cpath: &Path = &Path::new(&path);
-    let mut contract = Vyper::new(cpath);
+    let mut contract = vyper!(&path);
     contract.compile().map_err(|e| e.to_string())?;
-    contract.gen_abi().map_err(|e| e.to_string())?;
-    let abifile = File::open(&contract.abi).map_err(|e| e.to_string())?;
-    let reader = BufReader::new(abifile);
-    let abifile_json: Value = serde_json::from_reader(reader).map_err(|e| e.to_string())?;
-    //println!("{:?}", contract.bytecode.clone().unwrap());
+    let abi = contract.get_abi().map_err(|e| e.to_string())?;
     println!("Back to TS!");
     Ok(ContractWalletData::new(
-        abifile_json,
+        abi,
         contract.bytecode.unwrap(),
     ))
 }
 #[tauri::command]
 async fn compile_version(path: String, version: String) -> Result<ContractWalletData, String> {
+
     let ver: Evm = match &version.as_str() {
         &"Shanghai" => Evm::Shanghai,
         &"Paris" => Evm::Paris,
@@ -89,16 +85,12 @@ async fn compile_version(path: String, version: String) -> Result<ContractWallet
     let path = path.replace("\"", "");
     println!("{:?}", ver);
     println!("{:?}", path);
-    let cpath: &Path = &Path::new(&path);
-    println!("{:?}", cpath);
-    let mut contract = Vyper::new(cpath);
+    println!("{:?}", path);
+    let mut contract = vyper!(&path);
     contract.compile_ver(&ver).map_err(|e| e.to_string())?;
-    contract.gen_abi().map_err(|e| e.to_string())?;
-    let abifile = File::open(&contract.abi).map_err(|e| e.to_string())?;
-    let reader = BufReader::new(abifile);
-    let abifile_json: Value = serde_json::from_reader(reader).map_err(|e| e.to_string())?;
+    let abi = contract.get_abi().map_err(|e| e.to_string())?;
     Ok(ContractWalletData::new(
-        abifile_json,
+        abi,
         contract.bytecode.unwrap(),
     ))
 }
@@ -203,48 +195,58 @@ fn compile_solidity(file_path: &str, output_path: &str) -> Result<String, String
 
     let output = Command::new(solc_path)
         .args([
-            "--combined-json", "abi,bin,metadata",
+            "--combined-json",
+            "abi,bin,metadata",
             "--overwrite",
             file_path,
-            "-o", output_path,
+            "-o",
+            output_path,
         ])
         .output()
         .map_err(|e| e.to_string())?; // Convert IO errors to String
 
     if !output.status.success() {
-        let error_message = format!("Command executed with failing error code: {}", String::from_utf8_lossy(&output.stderr));
+        let error_message = format!(
+            "Command executed with failing error code: {}",
+            String::from_utf8_lossy(&output.stderr)
+        );
         return Err(error_message); // Directly return the error message as a String
     }
 
     let json_file_path = format!("{}/combined.json", output_path);
-    let file = File::open(&json_file_path)
-        .map_err(|e| e.to_string())?; // Convert IO errors to String
+    let file = File::open(&json_file_path).map_err(|e| e.to_string())?; // Convert IO errors to String
     let reader = BufReader::new(file);
 
-    let solc_output: SolcOutput = serde_json::from_reader(reader)
-        .map_err(|e| e.to_string())?; // Convert serde_json errors to String
+    let solc_output: SolcOutput = serde_json::from_reader(reader).map_err(|e| e.to_string())?; // Convert serde_json errors to String
     let contract = solc_output.contracts.owner;
 
-    let abi = serde_json::to_string_pretty(&contract.abi)
-        .map_err(|e| e.to_string())?; // Convert serde_json errors to String
+    let abi = serde_json::to_string_pretty(&contract.abi).map_err(|e| e.to_string())?; // Convert serde_json errors to String
     let bytecode = contract.bin;
 
     let compile_output = CompileOutput { abi, bytecode };
-    let json_output = serde_json::to_string(&compile_output)
-        .map_err(|e| e.to_string())?;
+    let json_output = serde_json::to_string(&compile_output).map_err(|e| e.to_string())?;
 
     Ok(json_output)
 }
 
 // Where i can get all this params without asking for it --> Fix this to put default value
-async fn etherscan_verification(api_key: &str , contract_address: &str , source_code : &str , contract_name: &str , compiler_version : &str , optimization_used : &str , runs: &str) -> Result<(), Box<dyn std::error::Error>> {
+async fn etherscan_verification(
+    api_key: &str,
+    contract_address: &str,
+    source_code: &str,
+    contract_name: &str,
+    compiler_version: &str,
+    optimization_used: &str,
+    runs: &str,
+) -> Result<(), Box<dyn std::error::Error>> {
     //Example
     //let compiler_version = "v0.8.0+commit.c7dfd78e"; // Compiler version used
     //let optimization_used = "1"; // Whether optimization was used (0 = No, 1 = Yes)
     //let runs = "200"; // Optimization runs
     // Additional parameters like constructor arguments, library addresses, etc., may be require
     let client = Client::new();
-    let res = client.post("https://api-sepolia.etherscan.io/api")
+    let res = client
+        .post("https://api-sepolia.etherscan.io/api")
         .form(&[
             ("apikey", api_key),
             ("module", "contract"),
@@ -277,45 +279,44 @@ mod tests {
         let file_path = "src/soliditylayout/contracts/storage.sol";
         let output_path = "src/soliditylayout/contracts";
         //let file_path = "/Users/protocolw/Public/Rustcodes/Protocoldenver/VyperDeployooor/src-tauri/src/soliditylayout/contracts/storage.sol"; // Update this path
-        match compile_solidity(file_path , output_path) {
+        match compile_solidity(file_path, output_path) {
             Ok(resp) => println!("{:?}", resp),
             Err(e) => eprintln!("Compilation failed: {}", e),
         }
     }
 
     #[tokio::test]
-async fn test_etherscan_verification() {
-    let api_key = "D7MEF2GFCVH4WEC69MSAIHTQ64F3U7EXMU";
-    let contract_address = "0x91BD3394ce59fe635253E3739D25Af07DD4952f4";
-    let file_path = "src/soliditylayout/contracts/storage.sol";
+    async fn test_etherscan_verification() {
+        let api_key = "D7MEF2GFCVH4WEC69MSAIHTQ64F3U7EXMU";
+        let contract_address = "0x91BD3394ce59fe635253E3739D25Af07DD4952f4";
+        let file_path = "src/soliditylayout/contracts/storage.sol";
 
-    // Asynchronously read the file contents into a string
-    let source_code = tokio::fs::read_to_string(file_path).await
-        .expect("Failed to read source code from file");
+        // Asynchronously read the file contents into a string
+        let source_code = tokio::fs::read_to_string(file_path)
+            .await
+            .expect("Failed to read source code from file");
 
-    let contract_name = "Owner";
-    let compiler_version = "v0.8.24+commit.e11b9ed9";
-    let optimization_used = "0";
-    let runs = "200";
+        let contract_name = "Owner";
+        let compiler_version = "v0.8.24+commit.e11b9ed9";
+        let optimization_used = "0";
+        let runs = "200";
 
-    // Ensure you are awaiting the result of the async function
-    let verification_result = etherscan_verification(
-        api_key,
-        contract_address,
-        &source_code, // Pass the file contents as source_code
-        contract_name,
-        compiler_version,
-        optimization_used,
-        runs,
-    ).await;
+        // Ensure you are awaiting the result of the async function
+        let verification_result = etherscan_verification(
+            api_key,
+            contract_address,
+            &source_code, // Pass the file contents as source_code
+            contract_name,
+            compiler_version,
+            optimization_used,
+            runs,
+        )
+        .await;
 
-    // Here you might want to assert something about verification_result to make the test meaningful
-    println!("Verification Result: {:?}", verification_result);
+        // Here you might want to assert something about verification_result to make the test meaningful
+        println!("Verification Result: {:?}", verification_result);
 
-    // Example assertion (adjust according to what etherscan_verification returns and what you expect)
-    // assert!(verification_result.is_ok());
+        // Example assertion (adjust according to what etherscan_verification returns and what you expect)
+        // assert!(verification_result.is_ok());
+    }
 }
-
-}
-
-
