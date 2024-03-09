@@ -14,6 +14,7 @@ type Deployment = {
 const chainIds = {
   11155111: 'ETH Sepolia',
   23011913: 'Arbitrum Stylus Testnet',
+  296: 'Hedera Testnet'
 }
 
 export const DeploymentsPage = () => {

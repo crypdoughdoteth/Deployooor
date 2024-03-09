@@ -1,6 +1,7 @@
 import { invoke } from '@tauri-apps/api/tauri';
 import { useState } from 'react';
-import { useStatus } from '../hooks'
+import { useStatus } from '../hooks';
+import { toast } from 'react-hot-toast';
 
 export const GenerateKeystorePage = () => {
   const [password, setPassword] = useState('');
@@ -9,10 +10,10 @@ export const GenerateKeystorePage = () => {
   const [status, setStatus] = useStatus('idle');
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    setStatus('loading')
+    setStatus('loading');
     try {
       e.preventDefault();
-  
+
       const res = await invoke('create_key', {
         path: `./`,
         password,
@@ -21,10 +22,12 @@ export const GenerateKeystorePage = () => {
 
       console.log(res);
     } catch (e) {
-      console.log(e)
-      setStatus('error')
+      console.log(e);
+      setStatus('error');
+      toast.error('Error generating keystore');
     } finally {
-      setStatus('success')
+      setStatus('success');
+      toast.success('Keystore generated');
     }
   };
 
@@ -57,14 +60,11 @@ export const GenerateKeystorePage = () => {
       </div>
 
       <button className='btn btn-primary' type='submit'>
+        {status === 'loading' && (
+          <span className='loading loading-spinner'></span>
+        )}
         Generate Keystore
       </button>
-
-      <pre>
-        <code>
-          {JSON.stringify(status, null, 2)}
-        </code>
-      </pre>
     </form>
   );
 };
