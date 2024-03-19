@@ -27,4 +27,4 @@ dist-ssr
 *.db-shm
 *.db-wal
 
-test-keystore.json
+*test-keystore.json
