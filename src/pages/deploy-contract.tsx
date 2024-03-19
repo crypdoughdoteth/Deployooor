@@ -1,15 +1,4 @@
 
-
-
-
-
-
-
-
-
-//   Constructor args an object -- use deploy.rs for reference, please return an array of objects
-// add address, balance of the address(gas balance, usually ether), network deploying to
-// encrypted private key, you can get public key. to get the address, using ethers.js
 import { useEffect, useState } from 'react';
 import { useStatus } from '../hooks';
 import { invoke } from '@tauri-apps/api/tauri';
