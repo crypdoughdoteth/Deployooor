@@ -44,7 +44,8 @@ export const DeployContractPage = () => {
 
   useEffect(() => {
     (async () => {
-      const keys = await invoke('list_keys');
+      const keys = await invoke('list_keys').catch((e)=>console.log(e));
+
       setKeys(
         keys as {
           name: string;
@@ -57,6 +58,11 @@ export const DeployContractPage = () => {
   useEffect(() => {
     setContractName(pathToContract.split("/")[pathToContract.split("/").length -1].split(".")[0]);
   },[pathToContract]);
+
+  useEffect(() => {
+      const grabFromKey = async () => {await invoke('list_keys')}
+      //console.log(grabFromKey());
+  },[keyToUse]);
 
   const compileVyperContract = async () => {
     const res: {
@@ -355,11 +361,12 @@ export const DeployContractPage = () => {
           value={keyToUse}
           onChange={(e) => setKeyToUse(e.target.value)}
         >
-          {keys.map((key) => (
+           {keys.length?(keys.map((key) => (
             <option key={key.name} value={key.name}>
               {key.name}
             </option>
-          ))}
+          ))):(<option key={1} value={""}>{"No Valid Keys"}</option>)}
+
         </select>
       </div>
 
