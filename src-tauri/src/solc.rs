@@ -29,9 +29,7 @@ pub struct CompileOutput {
 
 #[tauri::command]
 pub fn compile_solidity(file_path: &str, output_path: &str) -> Result<CompileOutput, String> {
-    let solc_path = "/opt/homebrew/bin/solc";
-
-    let output = Command::new(solc_path)
+    let output = Command::new("solc")
         .args([
             "--combined-json",
             "abi,bin,metadata",
@@ -62,7 +60,6 @@ pub fn compile_solidity(file_path: &str, output_path: &str) -> Result<CompileOut
     let bytecode = contract.bin;
 
     Ok(CompileOutput { abi, bytecode })
-
 }
 
 #[cfg(test)]
