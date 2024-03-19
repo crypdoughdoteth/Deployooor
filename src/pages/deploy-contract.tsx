@@ -1,3 +1,15 @@
+
+
+
+
+
+
+
+
+
+//   Constructor args an object -- use deploy.rs for reference, please return an array of objects
+// add address, balance of the address(gas balance, usually ether), network deploying to
+// encrypted private key, you can get public key. to get the address, using ethers.js
 import { useEffect, useState } from 'react';
 import { useStatus } from '../hooks';
 import { invoke } from '@tauri-apps/api/tauri';
@@ -21,11 +33,10 @@ export const DeployContractPage = () => {
 
   const [contractName, setContractName] = useState('');
   const [pathToContract, setPathToContract] = useState('');
-  const [evmVersion, setEvmVersion] = useState('');
+  const [evmVersion, setEvmVersion] = useState('Cancun');
   const [keyToUse, setKeyToUse] = useState<string>(''); // the name of the key to use
   const [constructorArgs, setConstructorArgs] = useState<string>('');
   const [contractType, setContractType] = useState<ContractType>('vyper');
-
   const [gasEstimate, setGasEstimate] = useState<string>('');
 
   const hasConfig = config?.etherscan_api && config?.provider;
@@ -53,6 +64,20 @@ export const DeployContractPage = () => {
       );
     })();
   }, []);
+
+  useEffect(() => {
+    setContractName(pathToContract.split("/")[pathToContract.split("/").length -1].split(".")[0]);
+  },[pathToContract]);
+
+
+ // useEffect(()=>{
+   // const invokeKeysForUse = async () => {
+    //  const res = await invoke('list_keys');
+      //const keystore =
+      //console.log(res)
+    }
+//  },[keyToUse]);
+
 
   const compileVyperContract = async () => {
     const res: {
@@ -132,7 +157,7 @@ export const DeployContractPage = () => {
     const json = JSON.parse(res);
     const abi = new ethers.Interface(JSON.parse(json.abi));
     const initcode = json.bytecode;
-    
+
     const provider = new ethers.JsonRpcProvider(config?.provider);
     const wallet = (
       await ethers.Wallet.fromEncryptedJson(
@@ -279,6 +304,7 @@ export const DeployContractPage = () => {
 
   return (
     <div className='flex flex-col gap-4'>
+      <div>{gasEstimate?`Gas Estimate: ${gasEstimate}`:"Please complete form to see gas estimate"}</div>
       <div className='form-control'>
         <label htmlFor='contractType' className='label'>
           Contract Type
@@ -296,19 +322,6 @@ export const DeployContractPage = () => {
       </div>
 
       <div className='form-control'>
-        <label htmlFor='contractName' className='label'>
-          Contract Name
-        </label>
-        <input
-          className='input input-bordered'
-          type='text'
-          id='contractName'
-          value={contractName}
-          onChange={(e) => setContractName(e.target.value)}
-        />
-      </div>
-
-      <div className='form-control'>
         <label htmlFor='pathToContract' className='label'>
           Path To Contract
         </label>
@@ -322,17 +335,23 @@ export const DeployContractPage = () => {
       </div>
 
       <div className='form-control'>
-        <label htmlFor='evmVersion' className='label'>
-          EVM Version
-        </label>
-        <input
-          className='input input-bordered'
-          type='text'
-          id='evmVersion'
-          value={evmVersion}
-          onChange={(e) => setEvmVersion(e.target.value)}
-        />
-      </div>
+      <label htmlFor='evmVersion' className='label'>
+         EVM Version
+       </label>
+      <select
+      className="select select-bordered"
+      id='evmVersion'
+      value={evmVersion}
+      onChange={(e) => setEvmVersion(e.target.value)}
+     >
+     <option value='cancun'>Cancun</option>
+     <option value='shanghai'>Shanghai</option>
+     <option value='berlin'>Berlin</option>
+     <option value='paris'>Paris</option>
+     <option value='london'>London</option>
+     </select>
+     </div>
+
 
       <div className='form-control'>
         <label htmlFor='constructorArgs' className='label'>
