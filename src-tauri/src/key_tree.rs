@@ -1,6 +1,15 @@
-use ethers::{core::rand::thread_rng, signers::Wallet};
+use ethers::{
+    core::rand::thread_rng,
+    signers::Wallet,
+};
 use serde::{Deserialize, Serialize};
-use std::{collections::BTreeMap, fs::File, path::PathBuf, sync::Mutex};
+use std::{
+    collections::BTreeMap,
+    fs::File,
+    io::{BufReader, Read},
+    path::PathBuf,
+    sync::Mutex,
+};
 use tauri::State;
 
 use crate::DB_POOL;
@@ -44,56 +53,40 @@ pub async fn create_key(
     Ok(())
 }
 
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct AccountNames {
+    name: String,
+}
+
 #[tauri::command]
-pub fn list_keys(state: State<AppState>) -> Result<Vec<Account>, String> {
-    Ok(state
+pub fn list_keys(state: State<AppState>) -> Vec<AccountNames> {
+    state
         .inner()
         .tree
         .lock()
         .unwrap()
         .iter()
-        .map(|e| {
-            if let Ok(file) = File::open(e.1) {
-                if let Ok(json_keystore) = serde_json::from_reader(file) {
-                    Ok(Account {
-                        name: e.0.to_string(),
-                        path: e.1.to_path_buf(),
-                        encrypted_json: json_keystore,
-                    })
-                } else {
-                    Err("Failed to get JSON keystore".to_string())
-                }
-            } else {
-                Err("Failed to open file".to_string())
-            }
-        })
-        .collect::<Result<Vec<Account>, String>>()?)
+        .map(|e| AccountNames {name: e.0.to_owned()})
+        .collect::<Vec<AccountNames>>()
 }
 
 #[tauri::command]
-pub fn get_key_by_name(state: State<AppState>, name: &str) -> Result<Option<Account>, String> {
-    Ok(state
-        .inner()
-        .tree
-        .lock()
-        .unwrap()
-        .get(name)
-        .map(|e| {
-            if let Ok(file) = File::open(e) {
-                if let Ok(keystore) = serde_json::from_reader(&file) {
-                    Ok(Account {
-                        name: name.to_string(),
-                        path: e.to_owned(),
-                        encrypted_json: keystore,
-                    })
-                } else {
-                    Err("Failed to get JSON keystore".to_string())
-                }
-            } else {
-                Err("Failed to open file".to_string())
-            }
-        })
-        .transpose()?)
+pub fn get_key_by_name(
+    state: State<AppState>,
+    name: &str
+) -> Option<Account> {
+   state.inner().tree.lock().unwrap().get(name).map(|e| {
+        let file = File::open(e).unwrap();
+        let mut buffer = BufReader::new(file);
+        let mut json: String = String::new();
+        buffer.read_to_string(&mut json).unwrap();
+
+        Account {
+            name: name.to_string(),
+            path: e.to_owned(),
+            encrypted_json: json,
+        }
+    })
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
