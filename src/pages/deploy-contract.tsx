@@ -69,16 +69,6 @@ export const DeployContractPage = () => {
     setContractName(pathToContract.split("/")[pathToContract.split("/").length -1].split(".")[0]);
   },[pathToContract]);
 
-
- // useEffect(()=>{
-   // const invokeKeysForUse = async () => {
-    //  const res = await invoke('list_keys');
-      //const keystore =
-      //console.log(res)
-    }
-//  },[keyToUse]);
-
-
   const compileVyperContract = async () => {
     const res: {
       abi: Array<any>;
