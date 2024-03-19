@@ -263,6 +263,7 @@ export const DeployContractPage = () => {
   };
 
   const handleEstimateGas = async () => {
+
     try {
       setStatus('loading');
 
@@ -274,12 +275,12 @@ export const DeployContractPage = () => {
         await estimateStylusGas();
       }
     } catch (error) {
-      console.log(error);
       setStatus('error');
       toast.error('Error estimating gas');
     } finally {
-      setStatus('success');
-      toast.success('Gas estimated');
+
+      setStatus('success')
+      toast.success('Gas estimated')
     }
   };
 
