@@ -46,7 +46,7 @@ pub async fn create_key(
 
 #[tauri::command]
 pub fn list_keys(state: State<AppState>) -> Result<Vec<Account>, String> {
-    state
+    Ok(state
         .inner()
         .tree
         .lock()
@@ -67,27 +67,33 @@ pub fn list_keys(state: State<AppState>) -> Result<Vec<Account>, String> {
                 Err("Failed to open file".to_string())
             }
         })
-        .collect::<Result<Vec<Account>, String>>()?;
-    todo!()
+        .collect::<Result<Vec<Account>, String>>()?)
 }
 
 #[tauri::command]
 pub fn get_key_by_name(state: State<AppState>, name: &str) -> Result<Option<Account>, String> {
-    Ok(state.inner().tree.lock().unwrap().get(name).map(|e| {
-        if let Ok(file) = File::open(e) {
-            if let Ok(keystore) = serde_json::from_reader(&file) {
-                Ok(Account {
-                    name: name.to_string(),
-                    path: e.to_owned(),
-                    encrypted_json: keystore,
-                })
+    Ok(state
+        .inner()
+        .tree
+        .lock()
+        .unwrap()
+        .get(name)
+        .map(|e| {
+            if let Ok(file) = File::open(e) {
+                if let Ok(keystore) = serde_json::from_reader(&file) {
+                    Ok(Account {
+                        name: name.to_string(),
+                        path: e.to_owned(),
+                        encrypted_json: keystore,
+                    })
+                } else {
+                    Err("Failed to get JSON keystore".to_string())
+                }
             } else {
-                Err("Failed to get JSON keystore".to_string())
+                Err("Failed to open file".to_string())
             }
-        } else {
-            Err("Failed to open file".to_string())
-        }
-    }).transpose()?)
+        })
+        .transpose()?)
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
