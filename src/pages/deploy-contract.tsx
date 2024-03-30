@@ -34,7 +34,8 @@ export const DeployContractPage = () => {
   const hasConfig = config?.etherscan_api && config?.provider;
 
   const [status, setStatus] = useStatus('idle');
-
+  const provider = new ethers.JsonRpcProvider(config?.provider);
+//below this is good
   useEffect(() => {
     (async () => {
       const config = (await invoke('get_config')) as {
@@ -61,7 +62,7 @@ export const DeployContractPage = () => {
 useEffect(() => {
   const makeWallet = async(pass: String) => {
     const key = await invoke('get_key_by_name', {name: keyToUse, password:pass});
-    const provider = new ethers.JsonRpcProvider(config?.provider); 
+ 
         setWallet(
        ( new ethers.Wallet(
          `0x${key.pk}`
@@ -75,8 +76,10 @@ useEffect(() => {
     setContractName(pathToContract.split("/")[pathToContract.split("/").length -1].split(".")[0]);
   },[pathToContract]);
 
-
+//above this is good
   const compileVyperContract = async () => {
+    console.log(pathToContract);
+    
     const res: {
       abi: Array<any>;
       initcode: string;
@@ -91,22 +94,23 @@ useEffect(() => {
 
   const deployVyperContract = async () => {
     const { abi, initcode } = await compileVyperContract();
+    
 
-    const provider = new ethers.JsonRpcProvider(config?.provider);
-    const wallet_two = (
-      await ethers.Wallet.fromEncryptedJson(
-        JSON.stringify(testKeystore),
-        'abcd'
-      )
-    ).connect(provider);
-    console.log(wallet_two);
+    // const provider = new ethers.JsonRpcProvider(config?.provider);
+    // const wallet_two = (
+    //   await ethers.Wallet.fromEncryptedJson(
+    //     JSON.stringify(testKeystore),
+    //     'abcd'
+    //   )
+    // ).connect(provider);
+    // console.log(wallet_two);
 
     const contractFactory = new ethers.ContractFactory(
       abi,
       {
         object: initcode,
       },
-      wallet_two
+      wallet
     );
     console.log(contractFactory);
 
