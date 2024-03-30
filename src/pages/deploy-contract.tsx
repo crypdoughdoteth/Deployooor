@@ -28,6 +28,7 @@ export const DeployContractPage = () => {
   const [contractType, setContractType] = useState<ContractType>('vyper');
   const [gasEstimate, setGasEstimate] = useState<string>('');
   const [password, setPassword] = useState<string>('');
+  const [wallet, setWallet] = useState<ethers.Wallet>();
 
   const hasConfig = config?.etherscan_api && config?.provider;
 
@@ -57,19 +58,15 @@ export const DeployContractPage = () => {
 
 
   const gatherKeys = async(pass: String) => {
-    const keys = await invoke('list_keys');
-    const key = await invoke('get_key_by_name', {name: keyToUse});
-    const provider = new ethers.JsonRpcProvider(config?.provider);
-    console.log(JSON.stringify(key.encrypted_json));
-    console.log(pass);    
-    const wallet =  (
-      await ethers.Wallet.fromEncryptedJson(
-        JSON.stringify(key.encrypted_json),
-        `${pass}`
-      )
-    ).connect(provider);
+    const key = await invoke('get_key_by_name', {name: keyToUse, password:pass});
+    const provider = new ethers.JsonRpcProvider(config?.provider); 
+        setWallet(
+       ( new ethers.Wallet(
+         `0x${key.pk}`
+       )).connect(provider)
+     );
 
-    
+
   
   }
 
@@ -77,9 +74,9 @@ export const DeployContractPage = () => {
     setContractName(pathToContract.split("/")[pathToContract.split("/").length -1].split(".")[0]);
   },[pathToContract]);
 
-  useEffect(() => {
-    gatherKeys(password);
-  },[keyToUse, password]);
+  // useEffect(() => {
+  //   gatherKeys(password);
+  // },[keyToUse, password]);
 
   const compileVyperContract = async () => {
     const res: {
@@ -193,6 +190,16 @@ export const DeployContractPage = () => {
   const onSubmit = async () => {
     try {
       setStatus('loading');
+
+      try{
+        await gatherKeys(password);
+        console.log(await gatherKeys(password))
+
+      }catch(e){
+        console.log(e);
+      }
+
+
 
       if (contractType === 'vyper') {
         await deployVyperContract();
