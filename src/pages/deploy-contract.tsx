@@ -6,6 +6,9 @@ import { ethers } from 'ethers';
 import testKeystore from '../test_keystore.json';
 import { toast } from 'react-hot-toast';
 import { path } from '@tauri-apps/api';
+// import { open, save } from "tauri/api/dialog"
+
+
 
 
 type ContractType = 'vyper' | 'stylus' | 'solidity';
@@ -63,7 +66,8 @@ export const DeployContractPage = () => {
 
 useEffect(() => {
   const makeWallet = async(pass: String) => {
-    const key = await invoke('get_key_by_name', {name: keyToUse, password:pass});
+
+    const key : any = await invoke('get_key_by_name', {name: keyToUse, password:pass});
         setWallet(
        ( new ethers.Wallet(
          `0x${key.pk}`
@@ -76,10 +80,13 @@ useEffect(() => {
 },[keyToUse, password]);
 
   useEffect(() => {
+    // (async() => setPathToContract(await open()))();
     setContractName(pathToContract.split("/")[pathToContract.split("/").length -1].split(".")[0]);
     if(contractName.length === pathToContract.length){
       setContractName(pathToContract.split("/\\/")[pathToContract.split("/\\/").length -1].split(".")[0]);
     }
+    console.log(pathToContract);
+    
   },[pathToContract]);
 
 //above this is good
@@ -129,7 +136,7 @@ useEffect(() => {
   //keystore path is tracked in state
   
   const deployStylusContract = async () => {
-    const key = await invoke('get_key_by_name', {name: keyToUse, password:password});
+    const key : any = await invoke('get_key_by_name', {name: keyToUse, password:password});
     const {
       fee,
       deployment_address,
