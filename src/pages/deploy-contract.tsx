@@ -52,7 +52,6 @@ export const DeployContractPage = () => {
           path: string;
         }[]
       );
-      console.log(keys);
     })();
   }, []);
 
@@ -61,14 +60,16 @@ export const DeployContractPage = () => {
     const keys = await invoke('list_keys');
     const key = await invoke('get_key_by_name', {name: keyToUse});
     const provider = new ethers.JsonRpcProvider(config?.provider);
-    // const wallet = (
-    //   await ethers.Wallet.fromEncryptedJson(
-    //     JSON.stringify(key),
-    //     `${pass}`
-    //   )
-    // ).connect(provider);
+    console.log(JSON.stringify(key.encrypted_json));
+    console.log(pass);    
+    const wallet =  (
+      await ethers.Wallet.fromEncryptedJson(
+        JSON.stringify(key.encrypted_json),
+        `${pass}`
+      )
+    ).connect(provider);
 
-    console.log(key);
+    
   
   }
 
