@@ -27,6 +27,7 @@ export const DeployContractPage = () => {
   const [constructorArgs, setConstructorArgs] = useState<string>('');
   const [contractType, setContractType] = useState<ContractType>('vyper');
   const [gasEstimate, setGasEstimate] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
 
   const hasConfig = config?.etherscan_api && config?.provider;
 
@@ -45,24 +46,39 @@ export const DeployContractPage = () => {
   useEffect(() => {
     (async () => {
       const keys = await invoke('list_keys').catch((e)=>console.log(e));
-
       setKeys(
         keys as {
           name: string;
           path: string;
         }[]
       );
+      console.log(keys);
     })();
   }, []);
+
+
+  const gatherKeys = async(pass: String) => {
+    const keys = await invoke('list_keys');
+    const key = await invoke('get_key_by_name', {name: keyToUse});
+    const provider = new ethers.JsonRpcProvider(config?.provider);
+    // const wallet = (
+    //   await ethers.Wallet.fromEncryptedJson(
+    //     JSON.stringify(key),
+    //     `${pass}`
+    //   )
+    // ).connect(provider);
+
+    console.log(key);
+  
+  }
 
   useEffect(() => {
     setContractName(pathToContract.split("/")[pathToContract.split("/").length -1].split(".")[0]);
   },[pathToContract]);
 
   useEffect(() => {
-      const grabFromKey = async () => {await invoke('list_keys')}
-      //console.log(grabFromKey());
-  },[keyToUse]);
+    gatherKeys(password);
+  },[keyToUse, password]);
 
   const compileVyperContract = async () => {
     const res: {
@@ -291,6 +307,20 @@ export const DeployContractPage = () => {
   return (
     <div className='flex flex-col gap-4'>
       <div>{gasEstimate?`Gas Estimate: ${gasEstimate}`:"Please complete form to see gas estimate"}</div>
+      <div className='form-control'>
+        <label htmlFor='password' className='label'>
+          Input Wallet Password
+        </label>
+        <input
+          type='password'
+          className='input input-bordered'
+          
+          id='password'
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+
+      </div>
       <div className='form-control'>
         <label htmlFor='contractType' className='label'>
           Contract Type
