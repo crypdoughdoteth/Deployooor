@@ -1,14 +1,10 @@
 use ethers::{
     core::rand::thread_rng,
-    signers::Wallet,
+    signers::Wallet, utils::hex::ToHexExt,
 };
 use serde::{Deserialize, Serialize};
 use std::{
-    collections::BTreeMap,
-    fs::File,
-    io::{BufReader, Read},
-    path::PathBuf,
-    sync::Mutex,
+    collections::BTreeMap, path::PathBuf, sync::Mutex
 };
 use tauri::State;
 
@@ -22,7 +18,7 @@ pub struct AppState {
 pub struct Account {
     name: String,
     path: PathBuf,
-    encrypted_json: String,
+    pk: String,
 }
 
 #[tauri::command]
@@ -73,18 +69,16 @@ pub fn list_keys(state: State<AppState>) -> Vec<AccountNames> {
 #[tauri::command]
 pub fn get_key_by_name(
     state: State<AppState>,
-    name: &str
+    name: &str,
+    password: &str,
 ) -> Option<Account> {
    state.inner().tree.lock().unwrap().get(name).map(|e| {
-        let file = File::open(e).unwrap();
-        let mut buffer = BufReader::new(file);
-        let mut json: String = String::new();
-        buffer.read_to_string(&mut json).unwrap();
-
+        let pk =  Wallet::decrypt_keystore(e, password).unwrap().signer().to_bytes().encode_hex(); 
+        println!("{pk}");
         Account {
             name: name.to_string(),
             path: e.to_owned(),
-            encrypted_json: json,
+            pk,
         }
     })
 }
