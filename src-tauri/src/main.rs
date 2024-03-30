@@ -7,12 +7,13 @@ pub mod solc;
 pub mod verification;
 pub mod vyper;
 pub mod config;
+pub mod db; 
+use std::sync::RwLock;
+
 use solc::compile_solidity;
 use deploy::deploy_contract;
 use vyper::{fetch_data, compile_version};
 use sqlx::SqlitePool;
-use std::sync::Mutex;
-pub mod db;
 use db::{db_read, db_write, Database, DB_POOL, DB_URL};
 use config::{set_config, get_config};
 use key_tree::{create_key, get_key_by_name, list_keys, load_keys_to_state, AppState};
@@ -27,7 +28,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let pool = SqlitePool::connect(DB_URL).await?;
     sqlx::migrate!("../migrations").run(&pool).await?;
     DB_POOL.set(pool).unwrap();
-    let key_state = Mutex::new(load_keys_to_state().await.unwrap());
+    let key_state = RwLock::new(load_keys_to_state().await.unwrap());
 
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
