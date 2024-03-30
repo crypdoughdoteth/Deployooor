@@ -1,17 +1,12 @@
-use ethers::{
-    core::rand::thread_rng,
-    signers::Wallet, utils::hex::ToHexExt,
-};
+use ethers::{core::rand::thread_rng, signers::Wallet, utils::hex::ToHexExt};
 use serde::{Deserialize, Serialize};
-use std::{
-    collections::BTreeMap, path::PathBuf, sync::Mutex
-};
+use std::{collections::BTreeMap, path::PathBuf, sync::RwLock};
 use tauri::State;
 
 use crate::DB_POOL;
 
 pub struct AppState {
-    pub tree: Mutex<BTreeMap<String, PathBuf>>,
+    pub tree: RwLock<BTreeMap<String, PathBuf>>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -32,10 +27,9 @@ pub async fn create_key(
     Wallet::new_keystore(&path, &mut thread_rng(), password, Some(&nickname))
         .map_err(|e| e.to_string())?;
     path.push_str(format!("/{}", &nickname).as_str());
-    state
-        .inner()
+    state 
         .tree
-        .lock()
+        .write()
         .unwrap()
         .insert(nickname.clone(), PathBuf::from(path.clone()));
     sqlx::query!(
@@ -57,12 +51,13 @@ pub struct AccountNames {
 #[tauri::command]
 pub fn list_keys(state: State<AppState>) -> Vec<AccountNames> {
     state
-        .inner()
         .tree
-        .lock()
+        .read()
         .unwrap()
         .iter()
-        .map(|e| AccountNames {name: e.0.to_owned()})
+        .map(|e| AccountNames {
+            name: e.0.to_owned(),
+        })
         .collect::<Vec<AccountNames>>()
 }
 
@@ -71,16 +66,20 @@ pub fn get_key_by_name(
     state: State<AppState>,
     name: &str,
     password: &str,
-) -> Option<Account> {
-   state.inner().tree.lock().unwrap().get(name).map(|e| {
-        let pk =  Wallet::decrypt_keystore(e, password).unwrap().signer().to_bytes().encode_hex(); 
+) -> Result<Account, String> {
+    let state = state.inner().tree.read().unwrap();
+    if let Some(state) = state.get(name) {
+        let wallet = Wallet::decrypt_keystore(&state, password).map_err(|e| e.to_string())?;
+        let pk = wallet.signer().to_bytes().encode_hex();
         println!("{pk}");
-        Account {
+        Ok(Account {
             name: name.to_string(),
-            path: e.to_owned(),
-            pk,
-        }
-    })
+            path: state.to_owned(),
+            pk
+        }) 
+    } else {
+        Err("Failed to retrieve state")?
+    } 
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
