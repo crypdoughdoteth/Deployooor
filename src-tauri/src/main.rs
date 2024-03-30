@@ -11,10 +11,7 @@ use solc::compile_solidity;
 use deploy::deploy_contract;
 use vyper::{fetch_data, compile_version};
 use sqlx::SqlitePool;
-use std::{
-    collections::BTreeMap,
-    sync::Mutex,
-};
+use std::sync::Mutex;
 pub mod db;
 use db::{db_read, db_write, Database, DB_POOL, DB_URL};
 use config::{set_config, get_config};
@@ -30,7 +27,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let pool = SqlitePool::connect(DB_URL).await?;
     sqlx::migrate!("../migrations").run(&pool).await?;
     DB_POOL.set(pool).unwrap();
-    load_keys_to_state().await.unwrap();
+    let key_state = Mutex::new(load_keys_to_state().await.unwrap());
+
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
             fetch_data,
@@ -48,7 +46,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             deploy_contract,
         ])
         .manage(AppState {
-            tree: Mutex::new(BTreeMap::new()),
+            tree: key_state,
         })
         .run(tauri::generate_context!())?;
     Ok(())
