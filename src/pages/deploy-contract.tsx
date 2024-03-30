@@ -5,6 +5,8 @@ import { invoke } from '@tauri-apps/api/tauri';
 import { ethers } from 'ethers';
 import testKeystore from '../test_keystore.json';
 import { toast } from 'react-hot-toast';
+import { path } from '@tauri-apps/api';
+
 
 type ContractType = 'vyper' | 'stylus' | 'solidity';
 
@@ -62,24 +64,27 @@ export const DeployContractPage = () => {
 useEffect(() => {
   const makeWallet = async(pass: String) => {
     const key = await invoke('get_key_by_name', {name: keyToUse, password:pass});
- 
         setWallet(
        ( new ethers.Wallet(
          `0x${key.pk}`
        )).connect(provider)
      );
+     
+     
   }
   makeWallet(password);
 },[keyToUse, password]);
 
   useEffect(() => {
     setContractName(pathToContract.split("/")[pathToContract.split("/").length -1].split(".")[0]);
+    if(contractName.length === pathToContract.length){
+      setContractName(pathToContract.split("/\\/")[pathToContract.split("/\\/").length -1].split(".")[0]);
+    }
   },[pathToContract]);
 
 //above this is good
   const compileVyperContract = async () => {
-    console.log(pathToContract);
-    
+ 
     const res: {
       abi: Array<any>;
       initcode: string;
@@ -94,17 +99,6 @@ useEffect(() => {
 
   const deployVyperContract = async () => {
     const { abi, initcode } = await compileVyperContract();
-    
-
-    // const provider = new ethers.JsonRpcProvider(config?.provider);
-    // const wallet_two = (
-    //   await ethers.Wallet.fromEncryptedJson(
-    //     JSON.stringify(testKeystore),
-    //     'abcd'
-    //   )
-    // ).connect(provider);
-    // console.log(wallet_two);
-
     const contractFactory = new ethers.ContractFactory(
       abi,
       {
@@ -116,12 +110,14 @@ useEffect(() => {
 
     console.log(constructorArgs);
 
+    //pass these args in from the user
     const tx = await contractFactory.deploy(1, [
       '0x0ED6Cec17F860fb54E21D154b49DAEFd9Ca04106',
     ]);
     await tx.waitForDeployment();
     const contractAddress = await tx.getAddress();
-
+    
+    
     await writeDeploymentToDb({
       deploymentAddress: contractAddress,
       deployerAddress: wallet.address,
@@ -130,7 +126,10 @@ useEffect(() => {
     });
   };
 
+  //keystore path is tracked in state
+  
   const deployStylusContract = async () => {
+    const key = await invoke('get_key_by_name', {name: keyToUse, password:password});
     const {
       fee,
       deployment_address,
@@ -139,8 +138,8 @@ useEffect(() => {
       deployment_address: string;
     } = await invoke('stylus_deploy_contract', {
       rootPath: pathToContract,
-      keystorePath: '/Users/dhaiwat/code/VyperDeployooor/src-tauri/test',
-      pass: 'abcd',
+      keystorePath: key.path,
+      pass: password,
     });
     await writeDeploymentToDb({
       deploymentAddress: deployment_address,
@@ -345,12 +344,12 @@ useEffect(() => {
           Path To Contract
         </label>
         <input
-          className='input input-bordered'
-          type='text'
+          className='file-input file-input-bordered'
+          type='file'
           id='pathToContract'
           value={pathToContract}
           onChange={(e) => setPathToContract(e.target.value)}
-        />
+        /> 
       </div>
 
       <div className='form-control'>
