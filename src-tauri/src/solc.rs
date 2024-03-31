@@ -1,7 +1,7 @@
-use std::process::Command;
-use std::{io::BufReader, fs::File};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use std::process::Command;
+use std::{fs::File, io::BufReader};
 
 #[derive(Serialize, Deserialize, Debug)]
 struct SolcOutput {
@@ -77,5 +77,4 @@ mod tests {
             Err(e) => eprintln!("Compilation failed: {}", e),
         }
     }
-
 }

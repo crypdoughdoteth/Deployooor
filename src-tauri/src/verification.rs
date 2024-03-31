@@ -41,7 +41,7 @@ pub async fn etherscan_verification(
 
 #[cfg(test)]
 pub mod tests {
-    
+
     use super::*;
 
     #[tokio::test]
@@ -78,5 +78,4 @@ pub mod tests {
         // Example assertion (adjust according to what etherscan_verification returns and what you expect)
         // assert!(verification_result.is_ok());
     }
-
 }

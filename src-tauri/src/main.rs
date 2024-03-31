@@ -1,26 +1,24 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
-pub mod key_tree;
-pub mod stylus;
+pub mod config;
+pub mod db;
 pub mod deploy;
-pub mod solc; 
+pub mod key_tree;
+pub mod solc;
+pub mod stylus;
 pub mod verification;
 pub mod vyper;
-pub mod config;
-pub mod db; 
 use std::sync::RwLock;
 
-use solc::compile_solidity;
-use deploy::deploy_contract;
-use vyper::{fetch_data, compile_version};
-use sqlx::SqlitePool;
+use config::{get_config, set_config};
 use db::{db_read, db_write, Database, DB_POOL, DB_URL};
-use config::{set_config, get_config};
+use deploy::deploy_contract;
 use key_tree::{create_key, get_key_by_name, list_keys, load_keys_to_state, AppState};
+use solc::compile_solidity;
+use sqlx::SqlitePool;
 use stylus::{stylus_deploy_contract, stylus_estimate_gas};
+use vyper::{compile_version, fetch_data};
 // use verification::etherscan_verification;
-
-
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -46,10 +44,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             compile_solidity,
             deploy_contract,
         ])
-        .manage(AppState {
-            tree: key_state,
-        })
+        .manage(AppState { map: key_state })
         .run(tauri::generate_context!())?;
     Ok(())
 }
-

@@ -1,7 +1,10 @@
-use vyper_rs::{vyper::{Evm, Vyper}, vyper};
-use serde_json::Value; 
-use serde::{Serialize, Deserialize};
-use std::path::Path; 
+use serde::{Deserialize, Serialize};
+use serde_json::Value;
+use std::path::Path;
+use vyper_rs::{
+    vyper,
+    vyper::{Evm, Vyper},
+};
 
 #[derive(Serialize, Deserialize)]
 pub struct ContractInfo {
@@ -21,14 +24,10 @@ pub async fn fetch_data(path: String) -> Result<ContractInfo, String> {
     contract.compile().map_err(|e| e.to_string())?;
     let abi = contract.get_abi().map_err(|e| e.to_string())?;
     println!("Back to TS!");
-    Ok(ContractInfo::new(
-        abi,
-        contract.bytecode.unwrap(),
-    ))
+    Ok(ContractInfo::new(abi, contract.bytecode.unwrap()))
 }
 #[tauri::command]
 pub async fn compile_version(path: String, version: String) -> Result<ContractInfo, String> {
-
     let ver: Evm = match &version.as_str() {
         &"Shanghai" => Evm::Shanghai,
         &"Paris" => Evm::Paris,
@@ -45,8 +44,5 @@ pub async fn compile_version(path: String, version: String) -> Result<ContractIn
     let mut contract = vyper!(&path);
     contract.compile_ver(&ver).map_err(|e| e.to_string())?;
     let abi = contract.get_abi().map_err(|e| e.to_string())?;
-    Ok(ContractInfo::new(
-        abi,
-        contract.bytecode.unwrap(),
-    ))
+    Ok(ContractInfo::new(abi, contract.bytecode.unwrap()))
 }

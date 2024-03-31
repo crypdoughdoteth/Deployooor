@@ -1,12 +1,12 @@
 use ethers::{core::rand::thread_rng, signers::Wallet, utils::hex::ToHexExt};
 use serde::{Deserialize, Serialize};
-use std::{collections::BTreeMap, path::PathBuf, sync::RwLock};
+use std::{collections::HashMap, path::PathBuf, sync::RwLock};
 use tauri::State;
 
 use crate::DB_POOL;
 
 pub struct AppState {
-    pub tree: RwLock<BTreeMap<String, PathBuf>>,
+    pub map: RwLock<HashMap<String, PathBuf>>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -27,8 +27,8 @@ pub async fn create_key(
     Wallet::new_keystore(&path, &mut thread_rng(), password, Some(&nickname))
         .map_err(|e| e.to_string())?;
     path.push_str(format!("/{}", &nickname).as_str());
-    state 
-        .tree
+    state
+        .map
         .write()
         .unwrap()
         .insert(nickname.clone(), PathBuf::from(path.clone()));
@@ -51,7 +51,7 @@ pub struct AccountNames {
 #[tauri::command]
 pub fn list_keys(state: State<AppState>) -> Vec<AccountNames> {
     state
-        .tree
+        .map
         .read()
         .unwrap()
         .iter()
@@ -67,7 +67,7 @@ pub fn get_key_by_name(
     name: &str,
     password: &str,
 ) -> Result<Account, String> {
-    let state = state.inner().tree.read().unwrap();
+    let state = state.inner().map.read().unwrap();
     if let Some(state) = state.get(name) {
         let wallet = Wallet::decrypt_keystore(&state, password).map_err(|e| e.to_string())?;
         let pk = wallet.signer().to_bytes().encode_hex();
@@ -75,11 +75,11 @@ pub fn get_key_by_name(
         Ok(Account {
             name: name.to_string(),
             path: state.to_owned(),
-            pk
-        }) 
+            pk,
+        })
     } else {
         Err("Failed to retrieve state")?
-    } 
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -88,13 +88,13 @@ pub struct Keys {
     path: String,
 }
 
-pub async fn load_keys_to_state() -> Result<BTreeMap<String, PathBuf>, String> {
+pub async fn load_keys_to_state() -> Result<HashMap<String, PathBuf>, String> {
     Ok(sqlx::query_as!(Keys, "SELECT name, path FROM Keys")
         .fetch_all(DB_POOL.get().unwrap())
         .await
         .map_err(|e| e.to_string())?
         .into_iter()
-        .fold(BTreeMap::new(), |mut acc, x| {
+        .fold(HashMap::new(), |mut acc, x| {
             acc.insert(x.name, PathBuf::from(x.path));
             acc
         }))
