@@ -85,8 +85,8 @@ useEffect(() => {
     if(contractName.length === pathToContract.length){
       setContractName(pathToContract.split("/\\/")[pathToContract.split("/\\/").length -1].split(".")[0]);
     }
-    console.log(pathToContract);
-    
+
+
   },[pathToContract]);
 
 //above this is good
@@ -115,7 +115,7 @@ useEffect(() => {
     );
     console.log(contractFactory);
 
-    console.log(constructorArgs);
+    
 
     //pass these args in from the user
     const tx = await contractFactory.deploy(1, [
@@ -160,7 +160,7 @@ useEffect(() => {
   const deploySolidityContract = async () => {
     const res = await invoke('compile_solidity', {
       filePath: pathToContract,
-      outputPath: '/Users/dhaiwat/code/VyperDeployooor/src-tauri',
+      outputPath: '../',
     });
     const json = JSON.parse(res);
     const abi = new ethers.Interface(JSON.parse(json.abi));
