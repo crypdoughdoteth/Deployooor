@@ -8,6 +8,7 @@ export const CreateConfigPage = () => {
   const [etherscanApiKey, setEtherscanApiKey] = useState('');
   const [status, setStatus] = useStatus('idle');
 
+
   useEffect(() => {
     (async () => {
       const config = (await invoke('get_config')) as {
