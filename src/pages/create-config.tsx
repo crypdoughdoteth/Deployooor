@@ -3,10 +3,12 @@ import { useStatus } from '../hooks';
 import { invoke } from '@tauri-apps/api/tauri';
 import { toast } from 'react-hot-toast';
 
+
 export const CreateConfigPage = () => {
   const [providerUrl, setProviderUrl] = useState('');
   const [etherscanApiKey, setEtherscanApiKey] = useState('');
   const [status, setStatus] = useStatus('idle');
+  const [dirs, setDirs] = useState('');
 
 
   useEffect(() => {
@@ -14,7 +16,9 @@ export const CreateConfigPage = () => {
       const config = (await invoke('get_config')) as {
         provider: string;
         etherscan_api: string;
+        project_directories: string[];
       };
+      
       setProviderUrl(config.provider);
       setEtherscanApiKey(config.etherscan_api);
     })();
@@ -24,11 +28,20 @@ export const CreateConfigPage = () => {
     try {
       e.preventDefault();
       setStatus('loading');
+      const config = (await invoke('get_config')) as {
+        provider: string;
+        etherscan_api: string;
+        project_directories: string[];
+      };
+      
       const res = await invoke('set_config', {
         provider: providerUrl,
         etherscanApi: etherscanApiKey,
-      });
-      console.log(res);
+        project_directories:[dirs, ...config.project_directories]
+      }).catch((e) => console.log(e.message));
+      console.log(res)
+      
+      // console.log(res);
     } catch (error) {
       console.log(error);
       setStatus('error');
@@ -37,6 +50,7 @@ export const CreateConfigPage = () => {
       setStatus('success');
       toast.success('Config set');
     }
+  
   };
 
   return (
@@ -64,6 +78,19 @@ export const CreateConfigPage = () => {
           id='etherscanApiKey'
           value={etherscanApiKey}
           onChange={(e) => setEtherscanApiKey(e.target.value)}
+        />
+      </div>
+
+      <div className='form-control'>
+        <label htmlFor='dirs' className='label'>
+        📁 Project Directories
+        </label>
+        <input
+          className='input input-bordered'
+          type='text'
+          id='dirs'
+          value={dirs}
+          onChange={(e) => setDirs(e.target.value)}
         />
       </div>
 

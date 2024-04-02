@@ -86,14 +86,14 @@ useEffect(() => {
     if(contractName.length === pathToContract.length){
       setContractName(pathToContract.split("/\\/")[pathToContract.split("/\\/").length -1].split(".")[0]);
     }
-    const dirs = (async()=>{
-      // await fs.BaseDirectory
-      const homePath = await fs.BaseDirectory;
-      console.log(homePath);
+    // const dirs = (async()=>{
+    //   // await fs.BaseDirectory
+    //   const homePath = await fs.BaseDirectory;
+    //   console.log(homePath);
       
-      // const pathInDir = await path.join(homePath, pathToContract.split("fakepath")[1].slice(1));
-      // console.log(pathInDir);
-    })()
+    //   // const pathInDir = await path.join(homePath, pathToContract.split("fakepath")[1].slice(1));
+    //   // console.log(pathInDir);
+    // })()
 
 
   },[pathToContract]);

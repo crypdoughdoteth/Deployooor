@@ -7,7 +7,7 @@ use serde_json::to_writer_pretty;
 pub struct Config {
     provider: String,
     etherscan_api: String,
-    project_directories: Vec<PathBuf> 
+    project_directories: Vec<String> 
 }
 
 #[tauri::command]
