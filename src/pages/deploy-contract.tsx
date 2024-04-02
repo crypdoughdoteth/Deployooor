@@ -5,7 +5,7 @@ import { invoke } from '@tauri-apps/api/tauri';
 import { ethers } from 'ethers';
 import testKeystore from '../test_keystore.json';
 import { toast } from 'react-hot-toast';
-import { path, fs } from '@tauri-apps/api';
+import { path, fs, dialog } from '@tauri-apps/api';
 import { desktopDir } from '@tauri-apps/api/path';
 // import { open, save } from "tauri/api/dialog"
 
@@ -88,27 +88,14 @@ useEffect(() => {
 },[keyToUse, password]);
 
   useEffect(() => {
-    // (async() => setPathToContract(await open()))();
     setContractName(pathToContract.split("/")[pathToContract.split("/").length -1].split(".")[0]);
     if(contractName.length === pathToContract.length){
       setContractName(pathToContract.split("/\\/")[pathToContract.split("/\\/").length -1].split(".")[0]);
     }
-
-    // data structure to be made to search directories
-    const dirsearch = async(count: number)=>{
-      const homePath = await fs.readDir(await dirToUse).then((e)=>{
-        const arr = []
-        for (const i of e) {
-          arr.push(i.path);
-        }
-        console.log(arr)
-        count++;
-        return {arr, count};
-      }).catch((e)=>console.log(e));
-    }
-
-    dirsearch(0);
   },[pathToContract, dirToUse]);
+
+
+
 
 //above this is good
   const compileVyperContract = async () => {
@@ -395,7 +382,15 @@ useEffect(() => {
           type='file'
           id='pathToContract'
           value={pathToContract}
-          onChange={(e) => setPathToContract(e.target.value)}
+          onClick={(e) =>{
+            e.preventDefault();
+            (async()=> await dialog.open({
+
+              filters: [{name: 'vyper', extensions: ['vy']}, {name: 'solidity', extensions: ['sol']}, {name: 'stylus', extensions: ['styl']}]
+            }))().then((g)=>console.log(g));
+      
+
+             }}
         /> 
       </div>
 
