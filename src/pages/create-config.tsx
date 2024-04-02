@@ -33,12 +33,12 @@ export const CreateConfigPage = () => {
         etherscan_api: string;
         project_directories: string[];
       };
-      console.log([dirs, ...config.project_directories])
+      // console.log([dirs, ...config.project_directories])
        await invoke('set_config', {
         provider: providerUrl,
         etherscanApi: etherscanApiKey,
-        project_directories:[dirs, ...config.project_directories]
-      }).catch((e) => console.log(e.message));
+        projects:[dirs, ...config.project_directories]
+      }).then((e) => console.log(e));
       
       
       // console.log(res);
@@ -48,6 +48,7 @@ export const CreateConfigPage = () => {
       toast.error('Error setting config');
     } finally {
       setStatus('success');
+      console.log('Config set');
       toast.success('Config set');
     }
   
