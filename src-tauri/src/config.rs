@@ -7,14 +7,16 @@ use serde_json::to_writer_pretty;
 pub struct Config {
     provider: String,
     etherscan_api: String,
+    project_directories: Vec<PathBuf> 
 }
 
 #[tauri::command]
-pub async fn set_config(provider: String, etherscan_api: String) -> Result<Config, String> {
+pub async fn set_config (conf: Config) -> Result<Config, String> {
     let config_path: PathBuf = PathBuf::from("./vyper_deployer_config.json");
     let conf: Config = Config {
-        provider,
-        etherscan_api,
+        provider: conf.provider,
+        etherscan_api: conf.etherscan_api,
+        project_directories: conf.project_directories
     };
     let file: File = File::create(config_path).map_err(|e| e.to_string())?;
     to_writer_pretty(file, &conf).map_err(|e| e.to_string())?;
