@@ -35,6 +35,10 @@ export const DeployContractPage = () => {
   const [gasEstimate, setGasEstimate] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [wallet, setWallet] = useState<ethers.Wallet>();
+  const [dirs, setDirs] = useState<string[]>([]);
+  const [dirToUse, setDirToUse] = useState<string>('');
+
+
 
 
   const hasConfig = config?.etherscan_api && config?.provider;
@@ -42,13 +46,16 @@ export const DeployContractPage = () => {
   const [status, setStatus] = useStatus('idle');
   const provider = new ethers.JsonRpcProvider(config?.provider);
 //below this is good
+
   useEffect(() => {
     (async () => {
       const config = (await invoke('get_config')) as {
         provider: string;
         etherscan_api: string;
+        project_directories: string[];
       };
       setConfig(config);
+      setDirs(config.project_directories);
     })();
   }, []);
 
@@ -86,17 +93,17 @@ useEffect(() => {
     if(contractName.length === pathToContract.length){
       setContractName(pathToContract.split("/\\/")[pathToContract.split("/\\/").length -1].split(".")[0]);
     }
-    // const dirs = (async()=>{
-    //   // await fs.BaseDirectory
-    //   const homePath = await fs.BaseDirectory;
-    //   console.log(homePath);
+    const dirs = (async()=>{
+      const homePath = await fs.readDir(await dirToUse).then((e)=>console.log(e)).catch((e)=>console.log(e));
       
-    //   // const pathInDir = await path.join(homePath, pathToContract.split("fakepath")[1].slice(1));
-    //   // console.log(pathInDir);
-    // })()
+      console.log(homePath);
+      
+      // const pathInDir = await path.join(homePath, pathToContract.split("fakepath")[1].slice(1));
+      // console.log(pathInDir);
+    })()
 
 
-  },[pathToContract]);
+  },[pathToContract, dirToUse]);
 
 //above this is good
   const compileVyperContract = async () => {
@@ -356,6 +363,25 @@ useEffect(() => {
       </div>
 
       <div className='form-control'>
+        <label htmlFor='dirToUse' className='label'>
+          Project Directory Location
+        </label>
+        <select
+          className='select select-bordered'
+          id='dirToUse'
+          value={dirToUse}
+          onChange={(e) => setDirToUse(e.target.value)}
+        >
+           {dirs.length?(dirs.map((key) => (
+            <option key={key} value={key}>
+              {key}
+            </option>
+          ))):(<option key={1} value={""}>{"No Valid Keys"}</option>)}
+
+        </select>
+      </div>
+
+      <div className='form-control'>
         <label htmlFor='pathToContract' className='label'>
           Path To Contract
         </label>
@@ -385,6 +411,8 @@ useEffect(() => {
      <option value='london'>London</option>
      </select>
      </div>
+
+
 
 
       <div className='form-control'>
