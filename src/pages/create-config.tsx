@@ -33,7 +33,8 @@ export const CreateConfigPage = () => {
         etherscan_api: string;
         project_directories: string[];
       };
-      await invoke('set_config', {
+      console.log([dirs, ...config.project_directories])
+       await invoke('set_config', {
         provider: providerUrl,
         etherscanApi: etherscanApiKey,
         project_directories:[dirs, ...config.project_directories]
