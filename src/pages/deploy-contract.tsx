@@ -36,7 +36,7 @@ export const DeployContractPage = () => {
   const [password, setPassword] = useState<string>('');
   const [wallet, setWallet] = useState<ethers.Wallet>();
   const [dirs, setDirs] = useState<string[]>([]);
-  const [dirToUse, setDirToUse] = useState<string>('');
+  const [dirToUse, setDirToUse] = useState<string>('./');
 
 
 
@@ -93,16 +93,21 @@ useEffect(() => {
     if(contractName.length === pathToContract.length){
       setContractName(pathToContract.split("/\\/")[pathToContract.split("/\\/").length -1].split(".")[0]);
     }
-    const dirs = (async()=>{
-      const homePath = await fs.readDir(await dirToUse).then((e)=>console.log(e)).catch((e)=>console.log(e));
-      
-      console.log(homePath);
-      
-      // const pathInDir = await path.join(homePath, pathToContract.split("fakepath")[1].slice(1));
-      // console.log(pathInDir);
-    })()
 
+    // data structure to be made to search directories
+    const dirsearch = async(count: number)=>{
+      const homePath = await fs.readDir(await dirToUse).then((e)=>{
+        const arr = []
+        for (const i of e) {
+          arr.push(i.path);
+        }
+        console.log(arr)
+        count++;
+        return {arr, count};
+      }).catch((e)=>console.log(e));
+    }
 
+    dirsearch(0);
   },[pathToContract, dirToUse]);
 
 //above this is good
