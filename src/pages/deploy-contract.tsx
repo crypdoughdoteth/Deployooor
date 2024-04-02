@@ -41,6 +41,7 @@ export const DeployContractPage = () => {
 
 
 
+
   const hasConfig = config?.etherscan_api && config?.provider;
 
   const [status, setStatus] = useStatus('idle');
@@ -384,12 +385,15 @@ useEffect(() => {
           value={pathToContract}
           onClick={(e) =>{
             e.preventDefault();
-            (async()=> await dialog.open({
-
+             (async()=> {
+              const temp = await dialog.open({
               filters: [{name: 'vyper', extensions: ['vy']}, {name: 'solidity', extensions: ['sol']}, {name: 'stylus', extensions: ['styl']}]
-            }))().then((g)=>console.log(g));
-      
-
+              
+              });
+              console.log(typeof temp);
+              // setPathToContract(await temp());
+              // console.log(pathToContract);
+            })()
              }}
         /> 
       </div>
