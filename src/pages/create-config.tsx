@@ -33,13 +33,12 @@ export const CreateConfigPage = () => {
         etherscan_api: string;
         project_directories: string[];
       };
-      
-      const res = await invoke('set_config', {
+      await invoke('set_config', {
         provider: providerUrl,
         etherscanApi: etherscanApiKey,
         project_directories:[dirs, ...config.project_directories]
       }).catch((e) => console.log(e.message));
-      console.log(res)
+      
       
       // console.log(res);
     } catch (error) {
