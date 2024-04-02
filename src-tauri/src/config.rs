@@ -11,12 +11,12 @@ pub struct Config {
 }
 
 #[tauri::command]
-pub async fn set_config (conf: Config) -> Result<Config, String> {
+pub async fn set_config (provider: String, etherscan_api: String, projects: Vec<String>) -> Result<Config, String> {
     let config_path: PathBuf = PathBuf::from("./vyper_deployer_config.json");
     let conf: Config = Config {
-        provider: conf.provider,
-        etherscan_api: conf.etherscan_api,
-        project_directories: conf.project_directories
+        provider,
+        etherscan_api,
+        project_directories: projects
     };
     let file: File = File::create(config_path).map_err(|e| e.to_string())?;
     to_writer_pretty(file, &conf).map_err(|e| e.to_string())?;
