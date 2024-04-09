@@ -1,8 +1,13 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 
 export const CreateAddressesPage = () => {
   const [args, setArgs] = useState<any[]>([])
   const [arg, setArg] = useState<any>('')
+
+  useEffect(() => {
+    console.log(args)
+    localStorage.setItem('args', JSON.stringify(args))
+  }, [args])
 
   return (
     <div className='flex flex-col gap-4'>
@@ -17,8 +22,11 @@ export const CreateAddressesPage = () => {
         className='btn btn-outline'
         onClick={e => {
           e.preventDefault()
-          setArgs([...args, arg])
-          setArg('')
+          if (!arg) return alert('Please enter an argument')
+          else {
+            setArgs([...args, arg])
+            setArg('')
+          }
         }}
       >
         Add Constructor Arguments
