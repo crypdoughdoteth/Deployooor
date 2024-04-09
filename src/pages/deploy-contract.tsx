@@ -97,7 +97,6 @@ useEffect(() => {
 
 
 
-
 //above this is good
   const compileVyperContract = async () => {
  
@@ -322,6 +321,9 @@ useEffect(() => {
     return <div>No config found</div>;
   }
 
+
+  const setContract = (path: string) => valForPath = path;
+
   return (
     <div className='flex flex-col gap-4'>
       <div>{gasEstimate?`Gas Estimate: ${gasEstimate}`:"Please complete form to see gas estimate"}</div>
@@ -355,32 +357,14 @@ useEffect(() => {
         </select>
       </div>
 
-      <div className='form-control'>
-        <label htmlFor='dirToUse' className='label'>
-          Project Directory Location
-        </label>
-        <select
-          className='select select-bordered'
-          id='dirToUse'
-          value={dirToUse}
-          onChange={(e) => setDirToUse(e.target.value)}
-        >
-           {dirs.length?(dirs.map((key) => (
-            <option key={key} value={key}>
-              {key}
-            </option>
-          ))):(<option key={1} value={""}>{"No Valid Keys"}</option>)}
-
-        </select>
-      </div>
 
       <div className='form-control'>
         <label htmlFor='pathToContract' className='label'>
           Path To Contract
         </label>
-        <input
-          className='file-input file-input-bordered'
-          type='file'
+        <div>
+        <button
+          className='btn btn-outline'
           id='pathToContract'
           value={pathToContract}
           onClick={(e) =>{
@@ -390,12 +374,12 @@ useEffect(() => {
               filters: [{name: 'vyper', extensions: ['vy']}, {name: 'solidity', extensions: ['sol']}, {name: 'stylus', extensions: ['styl']}]
               
               });
-              console.log(typeof temp);
-              // setPathToContract(await temp());
-              // console.log(pathToContract);
+              setPathToContract(temp);
             })()
              }}
-        /> 
+        >Select File</button>
+        <label className="pl-6">{pathToContract}</label>
+        </div>
       </div>
 
       <div className='form-control'>

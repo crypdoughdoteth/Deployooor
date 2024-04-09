@@ -82,18 +82,6 @@ export const CreateConfigPage = () => {
         />
       </div>
 
-      <div className='form-control'>
-        <label htmlFor='dirs' className='label'>
-        📁 Project Directories
-        </label>
-        <input
-          className='input input-bordered'
-          type='text'
-          id='dirs'
-          value={dirs}
-          onChange={(e) => setDirs(e.target.value)}
-        />
-      </div>
 
       <button className='btn btn-primary' type='submit'>
         {status === 'loading' && (
