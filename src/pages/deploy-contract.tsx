@@ -110,9 +110,7 @@ export const DeployContractPage = () => {
     console.log(contractFactory)
 
     //pass these args in from the user
-    const tx = await contractFactory.deploy(1, [
-      '0x0ED6Cec17F860fb54E21D154b49DAEFd9Ca04106'
-    ])
+    const tx = await contractFactory.deploy(args)
     await tx.waitForDeployment()
     const contractAddress = await tx.getAddress()
 
