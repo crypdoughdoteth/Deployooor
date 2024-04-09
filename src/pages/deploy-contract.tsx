@@ -300,12 +300,30 @@ export const DeployContractPage = () => {
 
   return (
     <div className='flex flex-col gap-4'>
-      <div>
-        {gasEstimate
-          ? `Gas Estimate: ${gasEstimate}`
-          : 'Please complete form to see gas estimate'}
+      <div className='form-control'>
+        <label htmlFor='keys' className='label'>
+          Key To Use
+        </label>
+        <select
+          className='select select-bordered'
+          id='keys'
+          value={keyToUse}
+          onChange={e => setKeyToUse(e.target.value)}
+        >
+          {keys.length ? (
+            keys.map(key => (
+              <option key={key.name} value={key.name}>
+                {key.name}
+              </option>
+            ))
+          ) : (
+            <option key={1} value={''}>
+              {'No Valid Keys'}
+            </option>
+          )}
+        </select>
       </div>
-      <CreateAddressesPage />
+
       <div className='form-control'>
         <label htmlFor='password' className='label'>
           Input Wallet Password
@@ -318,6 +336,15 @@ export const DeployContractPage = () => {
           onChange={e => setPassword(e.target.value)}
         />
       </div>
+
+      <div>
+        {wallet
+          ? `Address: ${wallet.address}`
+          : 'please fill form to see address'}
+      </div>
+
+      <CreateAddressesPage />
+
       <div className='form-control'>
         <label htmlFor='contractType' className='label'>
           Contract Type
@@ -381,7 +408,7 @@ export const DeployContractPage = () => {
         </select>
       </div>
 
-      <div className='form-control'>
+      {/* <div className='form-control'>
         <label htmlFor='constructorArgs' className='label'>
           Constructor Arguments
         </label>
@@ -392,35 +419,16 @@ export const DeployContractPage = () => {
           value={constructorArgs}
           onChange={e => setConstructorArgs(e.target.value)}
         />
+      </div> */}
+      <div>
+        {gasEstimate
+          ? `Gas Estimate: ${gasEstimate}`
+          : 'Please complete form to see gas estimate'}
       </div>
-
-      <div className='form-control'>
-        <label htmlFor='keys' className='label'>
-          Key To Use
-        </label>
-        <select
-          className='select select-bordered'
-          id='keys'
-          value={keyToUse}
-          onChange={e => setKeyToUse(e.target.value)}
-        >
-          {keys.length ? (
-            keys.map(key => (
-              <option key={key.name} value={key.name}>
-                {key.name}
-              </option>
-            ))
-          ) : (
-            <option key={1} value={''}>
-              {'No Valid Keys'}
-            </option>
-          )}
-        </select>
-      </div>
-
+      {/* 
       {gasEstimate && (
         <span className='text-sm'>Gas Estimate: {gasEstimate} wei</span>
-      )}
+      )} */}
 
       <button className='btn btn-outline' onClick={handleEstimateGas}>
         {status === 'loading' && (
