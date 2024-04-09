@@ -8,6 +8,7 @@ export const CreateAddressesPage = () => {
     <div className='flex flex-col gap-4'>
       <input
         type='text'
+        value={arg}
         onChange={e => setArg(e.target.value)}
         placeholder='Argument'
         className='input input-bordered'
