@@ -85,7 +85,6 @@ export const DeployContractPage = () => {
     }
   }, [pathToContract])
 
-  //above this is good
   const compileVyperContract = async () => {
     const res: {
       abi: Array<any>
@@ -110,7 +109,6 @@ export const DeployContractPage = () => {
     )
     console.log(contractFactory)
 
-    //pass these args in from the user
     const tx = await contractFactory.deploy(args)
     await tx.waitForDeployment()
     const contractAddress = await tx.getAddress()
@@ -280,10 +278,6 @@ export const DeployContractPage = () => {
   const handleEstimateGas = async () => {
     try {
       setStatus('loading')
-      // if(wallet){
-      //   makeWallet(password);
-      // }
-
       if (contractType === 'vyper') {
         await estimateVyperGas()
       }

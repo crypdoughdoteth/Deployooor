@@ -61,13 +61,6 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
           >
             Deployments
           </button>
-
-          {/* <button
-            className='btn'
-            onClick={() => setCurrentPage(Pages.Addresses)}
-          >
-            Addresses
-          </button> */}
         </div>
 
         <main className='p-12'>{children}</main>

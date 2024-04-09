@@ -1,37 +1,34 @@
-import { useContext } from 'react';
-import { CreateConfigPage } from './pages/create-config';
-import { PageContext, Pages } from './layout';
-import { HomePage } from './pages/home';
-import { GenerateKeystorePage } from './pages/generate-keystore';
+import { useContext } from 'react'
+import { CreateConfigPage } from './pages/create-config'
+import { PageContext, Pages } from './layout'
+import { HomePage } from './pages/home'
+import { GenerateKeystorePage } from './pages/generate-keystore'
 import { DeployContractPage } from './pages/deploy-contract'
 import { DeploymentsPage } from './pages/deployments'
 import { CreateAddressesPage } from './pages/create_addresses'
 
-function App() {
-  const { currentPage } = useContext(PageContext);
+function App () {
+  const { currentPage } = useContext(PageContext)
 
   if (currentPage === Pages.Home) {
-    return <HomePage />;
+    return <HomePage />
   }
 
   if (currentPage === Pages.CreateConfig) {
-    return <CreateConfigPage />;
+    return <CreateConfigPage />
   }
 
   if (currentPage === Pages.GenerateKeystore) {
-    return <GenerateKeystorePage />;
+    return <GenerateKeystorePage />
   }
 
   if (currentPage === Pages.DeployContract) {
-    return <DeployContractPage />;
+    return <DeployContractPage />
   }
 
   if (currentPage === Pages.Deployments) {
-    return <DeploymentsPage />;
-  }
-  if(currentPage === Pages.Addresses){
-    return <CreateAddressesPage />
+    return <DeploymentsPage />
   }
 }
 
-export default App;
+export default App
