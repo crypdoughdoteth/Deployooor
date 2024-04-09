@@ -5,6 +5,7 @@ import { ethers } from 'ethers'
 import testKeystore from '../test_keystore.json'
 import { toast } from 'react-hot-toast'
 import { dialog } from '@tauri-apps/api'
+import { CreateAddressesPage } from './create_addresses'
 
 type ContractType = 'vyper' | 'stylus' | 'solidity'
 
@@ -310,6 +311,7 @@ export const DeployContractPage = () => {
           ? `Gas Estimate: ${gasEstimate}`
           : 'Please complete form to see gas estimate'}
       </div>
+      <CreateAddressesPage />
       <div className='form-control'>
         <label htmlFor='password' className='label'>
           Input Wallet Password

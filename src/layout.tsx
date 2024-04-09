@@ -1,6 +1,6 @@
-import { createContext, useState } from 'react';
-import React from 'react';
-import { Toaster } from 'react-hot-toast';
+import { createContext, useState } from 'react'
+import React from 'react'
+import { Toaster } from 'react-hot-toast'
 
 export enum Pages {
   Home = 'home',
@@ -8,25 +8,25 @@ export enum Pages {
   CreateConfig = 'create-config',
   DeployContract = 'deploy-contract',
   Deployments = 'deployments',
-  Addresses = 'addresses',
+  Addresses = 'addresses'
 }
 
 export const PageContext = createContext<{
-  currentPage: Pages;
-  setCurrentPage: (page: Pages) => void;
+  currentPage: Pages
+  setCurrentPage: (page: Pages) => void
 }>({
   currentPage: Pages.Home,
-  setCurrentPage: () => {},
-});
+  setCurrentPage: () => {}
+})
 
 export const Layout = ({ children }: { children: React.ReactNode }) => {
-  const [currentPage, setCurrentPage] = useState<Pages>(Pages.Home);
+  const [currentPage, setCurrentPage] = useState<Pages>(Pages.Home)
 
   return (
     <PageContext.Provider
       value={{
         currentPage,
-        setCurrentPage: (page: Pages) => setCurrentPage(page),
+        setCurrentPage: (page: Pages) => setCurrentPage(page)
       }}
     >
       <Toaster />
@@ -62,17 +62,16 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
             Deployments
           </button>
 
-          
-          <button
+          {/* <button
             className='btn'
             onClick={() => setCurrentPage(Pages.Addresses)}
           >
             Addresses
-          </button>
+          </button> */}
         </div>
 
         <main className='p-12'>{children}</main>
       </div>
     </PageContext.Provider>
-  );
-};
+  )
+}
