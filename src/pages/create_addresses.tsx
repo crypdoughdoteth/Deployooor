@@ -13,6 +13,7 @@ export const CreateAddressesPage = () => {
         className='input input-bordered'
       ></input>
       <button
+        className='btn btn-outline'
         onClick={e => {
           e.preventDefault()
           setArgs([...args, arg])
@@ -21,7 +22,7 @@ export const CreateAddressesPage = () => {
       >
         Add Constructor Arguments
       </button>
-      <details className='dropdown'>
+      <details className='dropdown cursor-pointer'>
         <summary>List All Arguments</summary>
         <ul>
           {args.map((i, idx) => (
