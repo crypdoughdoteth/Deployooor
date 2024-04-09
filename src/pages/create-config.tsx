@@ -8,7 +8,7 @@ export const CreateConfigPage = () => {
   const [providerUrl, setProviderUrl] = useState('');
   const [etherscanApiKey, setEtherscanApiKey] = useState('');
   const [status, setStatus] = useStatus('idle');
-  const [dirs, setDirs] = useState('');
+
 
 
   useEffect(() => {
@@ -16,7 +16,6 @@ export const CreateConfigPage = () => {
       const config = (await invoke('get_config')) as {
         provider: string;
         etherscan_api: string;
-        project_directories: string[];
       };
       
       setProviderUrl(config.provider);
@@ -28,16 +27,9 @@ export const CreateConfigPage = () => {
     try {
       e.preventDefault();
       setStatus('loading');
-      const config = (await invoke('get_config')) as {
-        provider: string;
-        etherscan_api: string;
-        project_directories: string[];
-      };
-      // console.log([dirs, ...config.project_directories])
        await invoke('set_config', {
         provider: providerUrl,
         etherscanApi: etherscanApiKey,
-        projects:[dirs, ...config.project_directories]
       }).then((e) => console.log(e));
       
       

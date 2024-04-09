@@ -5,9 +5,8 @@ import { invoke } from '@tauri-apps/api/tauri';
 import { ethers } from 'ethers';
 import testKeystore from '../test_keystore.json';
 import { toast } from 'react-hot-toast';
-import { path, fs, dialog } from '@tauri-apps/api';
-import { desktopDir } from '@tauri-apps/api/path';
-// import { open, save } from "tauri/api/dialog"
+import { dialog } from '@tauri-apps/api';
+
 
 
 
@@ -29,34 +28,27 @@ export const DeployContractPage = () => {
   const [contractName, setContractName] = useState('');
   const [pathToContract, setPathToContract] = useState('');
   const [evmVersion, setEvmVersion] = useState('Cancun');
-  const [keyToUse, setKeyToUse] = useState<string>(''); // the name of the key to use
+  const [keyToUse, setKeyToUse] = useState<string>('');
   const [constructorArgs, setConstructorArgs] = useState<string>('');
   const [contractType, setContractType] = useState<ContractType>('vyper');
   const [gasEstimate, setGasEstimate] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [wallet, setWallet] = useState<ethers.Wallet>();
-  const [dirs, setDirs] = useState<string[]>([]);
-  const [dirToUse, setDirToUse] = useState<string>('./');
-
-
-
-
 
   const hasConfig = config?.etherscan_api && config?.provider;
 
   const [status, setStatus] = useStatus('idle');
   const provider = new ethers.JsonRpcProvider(config?.provider);
-//below this is good
 
   useEffect(() => {
     (async () => {
       const config = (await invoke('get_config')) as {
         provider: string;
         etherscan_api: string;
-        project_directories: string[];
+
       };
       setConfig(config);
-      setDirs(config.project_directories);
+
     })();
   }, []);
 
@@ -93,7 +85,7 @@ useEffect(() => {
     if(contractName.length === pathToContract.length){
       setContractName(pathToContract.split("/\\/")[pathToContract.split("/\\/").length -1].split(".")[0]);
     }
-  },[pathToContract, dirToUse]);
+  },[pathToContract]);
 
 
 
@@ -321,8 +313,6 @@ useEffect(() => {
     return <div>No config found</div>;
   }
 
-
-  const setContract = (path: string) => valForPath = path;
 
   return (
     <div className='flex flex-col gap-4'>

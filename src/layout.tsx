@@ -8,6 +8,7 @@ export enum Pages {
   CreateConfig = 'create-config',
   DeployContract = 'deploy-contract',
   Deployments = 'deployments',
+  Addresses = 'addresses',
 }
 
 export const PageContext = createContext<{
@@ -59,6 +60,14 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
             onClick={() => setCurrentPage(Pages.Deployments)}
           >
             Deployments
+          </button>
+
+          
+          <button
+            className='btn'
+            onClick={() => setCurrentPage(Pages.Addresses)}
+          >
+            Addresses
           </button>
         </div>
 

@@ -5,6 +5,7 @@ import { HomePage } from './pages/home';
 import { GenerateKeystorePage } from './pages/generate-keystore';
 import { DeployContractPage } from './pages/deploy-contract'
 import { DeploymentsPage } from './pages/deployments'
+import { CreateAddressesPage } from './pages/create_addresses'
 
 function App() {
   const { currentPage } = useContext(PageContext);
@@ -27,6 +28,9 @@ function App() {
 
   if (currentPage === Pages.Deployments) {
     return <DeploymentsPage />;
+  }
+  if(currentPage === Pages.Addresses){
+    return <CreateAddressesPage />
   }
 }
 
