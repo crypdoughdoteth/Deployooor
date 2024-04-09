@@ -5,7 +5,6 @@ export const CreateAddressesPage = () => {
   const [arg, setArg] = useState<any>('')
 
   useEffect(() => {
-    console.log(args)
     localStorage.setItem('args', JSON.stringify(args))
   }, [args])
 

@@ -32,7 +32,6 @@ export const DeployContractPage = () => {
 
   const hasConfig = config?.etherscan_api && config?.provider
   const args = localStorage.getItem('args')?.split(',')
-  console.log(args)
 
   const [status, setStatus] = useStatus('idle')
   const provider = new ethers.JsonRpcProvider(config?.provider)
