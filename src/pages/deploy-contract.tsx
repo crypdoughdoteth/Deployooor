@@ -109,8 +109,9 @@ export const DeployContractPage = () => {
       wallet
     )
     console.log(contractFactory)
+    console.log(args)
 
-    const tx = await contractFactory.deploy(...constructorArgs)
+    const tx = await contractFactory.deploy(args)
     await tx.waitForDeployment()
     const contractAddress = await tx.getAddress()
 
@@ -177,7 +178,7 @@ export const DeployContractPage = () => {
 
     console.log(constructorArgs)
 
-    const tx = await contractFactory.deploy(...constructorArgs)
+    const tx = await contractFactory.deploy(args)
     await tx.waitForDeployment()
     const contractAddress = await tx.getAddress()
 
