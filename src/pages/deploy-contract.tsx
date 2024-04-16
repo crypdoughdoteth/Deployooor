@@ -110,7 +110,7 @@ export const DeployContractPage = () => {
     const args = localStorage.getItem('args')
     console.log(args)
 
-    const tx = await contractFactory.deploy()
+    const tx = await contractFactory.deploy(args)
     await tx.waitForDeployment()
     const contractAddress = await tx.getAddress()
 
