@@ -108,9 +108,12 @@ export const DeployContractPage = () => {
     )
 
     const args: any[] | undefined = localStorage.getItem('args')?.split(',')
-    console.log(args)
+    console.log(args[0], Array.from(args.slice(1)[0]))
 
-    const tx = await contractFactory.deploy(args[0], Array.from(args.slice(1)))
+    const tx = await contractFactory.deploy(
+      args[0],
+      Array.from(args.slice(1)[0])
+    )
     await tx.waitForDeployment()
     const contractAddress = await tx.getAddress()
 
