@@ -32,7 +32,8 @@ export const DeployContractPage = () => {
   const [wallet, setWallet] = useState<ethers.Wallet>()
 
   const hasConfig = config?.etherscan_api && config?.provider
-  const args = localStorage.getItem('args')?.split(',')
+  // const args = localStorage.getItem('args')
+  // console.log(args)
 
   const [status, setStatus] = useStatus('idle')
   const provider = new ethers.JsonRpcProvider(config?.provider)
@@ -108,10 +109,12 @@ export const DeployContractPage = () => {
       },
       wallet
     )
-    console.log(contractFactory)
-    console.log(args)
 
-    const tx = await contractFactory.deploy(args)
+    const args = JSON.parse(localStorage.getItem('args') || '[]')
+    console.log(contractFactory)
+    console.log(...args)
+
+    const tx = await contractFactory.deploy(...args)
     await tx.waitForDeployment()
     const contractAddress = await tx.getAddress()
 
@@ -176,9 +179,11 @@ export const DeployContractPage = () => {
       wallet
     )
 
-    console.log(constructorArgs)
+    const args = JSON.parse(localStorage.getItem('args') || '[]')
+    console.log(contractFactory)
+    console.log(...args)
 
-    const tx = await contractFactory.deploy(args)
+    const tx = await contractFactory.deploy(...args)
     await tx.waitForDeployment()
     const contractAddress = await tx.getAddress()
 
