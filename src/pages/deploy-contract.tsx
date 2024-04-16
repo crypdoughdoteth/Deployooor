@@ -182,8 +182,13 @@ export const DeployContractPage = () => {
     const args = JSON.parse(localStorage.getItem('args') || '[]')
     console.log(contractFactory)
     console.log(...args)
+    const uint_val = args.filter(
+      (val: any) => typeof parseInt(val) === 'number'
+    )
+    const arr_val = args.filter((val: any) => typeof parseInt(val) !== 'number')
+    //1, "[asdawdadadad, asdasdadadada]"
 
-    const tx = await contractFactory.deploy(...args)
+    const tx = await contractFactory.deploy(...uint_val, ...arr_val)
     await tx.waitForDeployment()
     const contractAddress = await tx.getAddress()
 
