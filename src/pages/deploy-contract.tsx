@@ -100,6 +100,7 @@ export const DeployContractPage = () => {
 
   const deployVyperContract = async () => {
     const { abi, initcode } = await compileVyperContract()
+    console.log(abi, initcode)
     const contractFactory = new ethers.ContractFactory(
       abi,
       {
@@ -109,7 +110,7 @@ export const DeployContractPage = () => {
     )
     console.log(contractFactory)
 
-    const tx = await contractFactory.deploy(args)
+    const tx = await contractFactory.deploy(...constructorArgs)
     await tx.waitForDeployment()
     const contractAddress = await tx.getAddress()
 
@@ -141,9 +142,10 @@ export const DeployContractPage = () => {
     })
     await writeDeploymentToDb({
       deploymentAddress: deployment_address,
-      deployerAddress: '0xb0F538e57D19417d9634B4c88750da808Ee62972',
+      //double check me :) <3 bitch
+      deployerAddress: key?.address,
       smartContractName: contractName,
-      chainId: '23011913',
+      chainId: wallet?.provider?.getNetwork.name,
       fee
     })
   }
@@ -175,7 +177,7 @@ export const DeployContractPage = () => {
 
     console.log(constructorArgs)
 
-    const tx = await contractFactory.deploy()
+    const tx = await contractFactory.deploy(...constructorArgs)
     await tx.waitForDeployment()
     const contractAddress = await tx.getAddress()
 
