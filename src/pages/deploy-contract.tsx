@@ -107,15 +107,10 @@ export const DeployContractPage = () => {
       wallet
     )
 
-    const args = JSON.parse(localStorage.getItem('args') || '[]')
+    const args = localStorage.getItem('args')?.split(',')
+    console.log(args)
 
-    const uint_val = args.filter(
-      (val: any) => typeof parseInt(val) === 'number'
-    )
-    const arr = Array.from(args[1])
-    console.log(uint_val[0], arr)
-
-    const tx = await contractFactory.deploy(uint_val[0], arr)
+    const tx = await contractFactory.deploy()
     await tx.waitForDeployment()
     const contractAddress = await tx.getAddress()
 

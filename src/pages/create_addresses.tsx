@@ -9,7 +9,7 @@ export const CreateAddressesPage = () => {
   }
 
   useEffect(() => {
-    localStorage.setItem('args', JSON.stringify(args))
+    localStorage.setItem('args', args.join(','))
   }, [args])
 
   return (
