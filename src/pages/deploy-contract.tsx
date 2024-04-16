@@ -188,7 +188,7 @@ export const DeployContractPage = () => {
     const arr_val = args.filter((val: any) => typeof parseInt(val) !== 'number')
     //1, "[asdawdadadad, asdasdadadada]"
     console.log(uint_val, arr_val)
-    const tx = await contractFactory.deploy(...uint_val, ...arr_val)
+    const tx = await contractFactory.deploy(uint_val[0], arr_val)
     await tx.waitForDeployment()
     const contractAddress = await tx.getAddress()
 
