@@ -107,10 +107,10 @@ export const DeployContractPage = () => {
       wallet
     )
 
-    const args = localStorage.getItem('args')
+    const args: any[] | undefined = localStorage.getItem('args')?.split(',')
     console.log(args)
 
-    const tx = await contractFactory.deploy([args])
+    const tx = await contractFactory.deploy(args[0], args.slice(1))
     await tx.waitForDeployment()
     const contractAddress = await tx.getAddress()
 
