@@ -115,7 +115,7 @@ export const DeployContractPage = () => {
     )
     // const arr_val = args.filter((val: any) => typeof val === 'string')
     //1, "[asdawdadadad, asdasdadadada]"
-    console.log(uint_val[0], args[1])
+    console.log(uint_val[0], JSON.parse(args[1]))
 
     const tx = await contractFactory.deploy(uint_val[0], JSON.parse(args[1]))
     await tx.waitForDeployment()
