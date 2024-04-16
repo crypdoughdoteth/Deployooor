@@ -4,6 +4,10 @@ export const CreateAddressesPage = () => {
   const [args, setArgs] = useState<any[]>([])
   const [arg, setArg] = useState<any>('')
 
+  const onDeleteArg = (idx: number) => {
+    setArgs(args.filter((_, i) => i !== idx))
+  }
+
   useEffect(() => {
     localStorage.setItem('args', JSON.stringify(args))
   }, [args])
@@ -34,7 +38,17 @@ export const CreateAddressesPage = () => {
         <summary>List All Arguments</summary>
         <ul>
           {args.map((i, idx) => (
-            <li key={idx}>{i}</li>
+            <li key={idx}>
+              {i} |{' '}
+              <button
+                className='text-red-900'
+                onClick={() => {
+                  setArgs(args.filter((_, i) => i !== idx))
+                }}
+              >
+                delete
+              </button>
+            </li>
           ))}
         </ul>
       </details>
