@@ -112,7 +112,7 @@ export const DeployContractPage = () => {
     const uint_val = args.filter(
       (val: any) => typeof parseInt(val) === 'number'
     )
-    const arr = JSON.parse(args[1])
+    const arr = Array.from(args[1])
     console.log(uint_val[0], arr)
 
     const tx = await contractFactory.deploy(uint_val[0], arr)
