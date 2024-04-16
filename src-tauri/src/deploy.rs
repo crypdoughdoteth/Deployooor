@@ -1,7 +1,9 @@
 use ethers::{
     abi::{Address, Int, Token, Uint},
     contract::ContractFactory,
-    providers::{Http, Provider},
+    middleware::SignerMiddleware,
+    providers::{Http, Middleware, Provider},
+    signers::{LocalWallet, Signer},
     types::Bytes,
     utils::hex::FromHex,
 };
@@ -14,6 +16,7 @@ pub struct ContractDeployment<'a> {
     args: Box<[ConstructorArg<'a>]>,
     abi: &'a str,
     initcode: &'a str,
+    private_key: &'a str,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -40,37 +43,41 @@ pub enum EthType {
 // from vyper, solidity etc
 #[tauri::command]
 pub async fn deploy_contract(contract: ContractDeployment<'_>) -> Result<(), String> {
-    let provider = Arc::new(
-        Provider::<Http>::try_from(contract.provider)
-            .map_err(|e| e.to_string())?
-            .interval(Duration::from_millis(10u64)),
-    );
+    let provider = Provider::<Http>::try_from(contract.provider)
+        .map_err(|e| e.to_string())?
+        .interval(Duration::from_millis(10u64));
+    let chain_id = &provider.get_chainid().await.map_err(|e| e.to_string())?;
+    let local_wallet: LocalWallet = contract
+        .private_key
+        .parse::<LocalWallet>()
+        .map_err(|e| e.to_string())?
+        .with_chain_id(chain_id.as_u64());
 
+    let client = Arc::new(SignerMiddleware::new(provider, local_wallet));
     let abi = ethers::abi::Contract::load(contract.abi.as_bytes()).map_err(|e| e.to_string())?;
     let initcode = Bytes::from_hex(contract.initcode).map_err(|e| e.to_string())?;
-    let factory = ContractFactory::new(abi, initcode, provider);
+    let factory = ContractFactory::new(abi, initcode, client);
 
     let _res = match &contract.args.len() {
         0 => factory
             .deploy(())
             .map_err(|e| e.to_string())?
-            .send_with_receipt()
+            .send()
             .await
             .map_err(|e| e.to_string())?,
         1 => factory
-            .deploy(contract.parse_constructor_args()?.pop().unwrap())
+            .deploy_tokens(contract.parse_constructor_args()?)
             .map_err(|e| e.to_string())?
-            .send_with_receipt()
+            .send()
             .await
             .map_err(|e| e.to_string())?,
         _ => factory
-            .deploy(contract.parse_constructor_args()?)
+            .deploy_tokens(contract.parse_constructor_args()?)
             .map_err(|e| e.to_string())?
-            .send_with_receipt()
+            .send()
             .await
             .map_err(|e| e.to_string())?,
     };
-
     // let address = res.1.contract_address;
     // let fee = res.1.effective_gas_price.unwrap().checked_mul(res.1.gas_used.unwrap()).unwrap();
 
@@ -134,7 +141,6 @@ impl<'a> ConstructorArg<'a> {
 pub mod tests {
 
     use super::*;
-    use ethers::abi::{self, Address};
     use EthType;
 
     #[test]
@@ -152,6 +158,20 @@ pub mod tests {
                 EthType::String
             ]))
             .unwrap()
-        )
+        );
+        println!(
+            "{:?}",
+            serde_json::to_string(&ConstructorArg {
+                ty: EthType::Uint,
+                value: "1",
+            }).unwrap()
+        );
+        println!(
+            "{:?}",
+            serde_json::to_string(&ConstructorArg {
+                ty: EthType::Array(Box::new(EthType::Address)),
+                value: "0x1f9090aaE28b8a3dCeaDf281B0F12828e676c326",
+            }).unwrap()
+        );
     }
 }
