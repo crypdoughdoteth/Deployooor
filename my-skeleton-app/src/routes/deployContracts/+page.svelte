@@ -57,6 +57,7 @@
     <svelte:fragment slot="header">Arguments</svelte:fragment>
 
     <form class="w-1/2 m-auto mt-20 h-80">
+      <button> </button>
       <label class="label mt-4">
         <span>Arguments</span>
         <input class="input mt-8" type="text" placeholder="arguments" />

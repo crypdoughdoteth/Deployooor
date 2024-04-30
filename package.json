@@ -10,6 +10,7 @@
     "tauri": "tauri"
   },
   "dependencies": {
+    "@fortawesome/fontawesome-svg-core": "^6.5.2",
     "@tauri-apps/api": "^1",
     "add": "^2.0.6",
     "ethers": "^6.11.1",
