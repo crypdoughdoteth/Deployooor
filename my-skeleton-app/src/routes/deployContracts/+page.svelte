@@ -24,20 +24,6 @@
       <button class="btn m-auto block mt-2 bg-slate-950">Show address</button>
     </form>
   </Step>
-  <Step class="rounded-lg bg-slate-950/20 p-6">
-    <svelte:fragment slot="header">Arguments</svelte:fragment>
-
-    <form class="w-1/2 m-auto mt-20 h-80">
-      <label class="label mt-4">
-        <span>Arguments</span>
-        <input class="input mt-8" type="text" placeholder="arguments" />
-      </label>
-      <select class="select mt-10">
-        <option value="1">placeholder</option>
-      </select>
-      <button class="btn m-auto block mt-2 bg-slate-950">Show args</button>
-    </form>
-  </Step>
   <Step class=" bg-slate-950/20 p-6 rounded-lg">
     <svelte:fragment slot="header">Contract</svelte:fragment>
     <form class="w-1/2 m-auto mt-20 h-80">
@@ -65,7 +51,20 @@
           <option value="3">London</option>
         </select>
       </label>
-      <button class="btn m-auto block mt-2 bg-slate-950">Estimate Gas</button>
+    </form>
+  </Step>
+  <Step class="rounded-lg bg-slate-950/20 p-6">
+    <svelte:fragment slot="header">Arguments</svelte:fragment>
+
+    <form class="w-1/2 m-auto mt-20 h-80">
+      <label class="label mt-4">
+        <span>Arguments</span>
+        <input class="input mt-8" type="text" placeholder="arguments" />
+      </label>
+      <select class="select mt-10">
+        <option value="1">placeholder</option>
+      </select>
+      <button class="btn m-auto block mt-2 bg-slate-950">Show args</button>
     </form>
   </Step>
 </Stepper>
