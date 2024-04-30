@@ -1,6 +1,5 @@
 <script lang="ts">
   import "../app.postcss";
-  import { Navigation } from "@sveltejs/kit";
 
   // Highlight JS
   import hljs from "highlight.js/lib/core";
