@@ -29,24 +29,31 @@
     <svelte:fragment slot="header">Key</svelte:fragment>
     <form class="w-1/2 m-auto mt-20 h-80">
       <label class="label">
-        <span>Key To Use</span>
+        <span class="ml-[7px]">Key To Use</span>
         <select class="select">
           <option value="1">placeholder</option>
         </select>
       </label>
 
       <label class="label mt-4">
-        <span>Input Wallet Password</span>
+        <span class="ml-[7px]">Input Wallet Password</span>
         <input class="input" type="password" placeholder="password" />
       </label>
-      <button class="btn m-auto block mt-2 bg-slate-950">Show address</button>
+      <!-- <button class="btn m-auto block mt-2 bg-slate-950">Show address</button> -->
+      <ul class="list mt-4 h-30 overflow-hidden">
+        <li>
+          <span class="ml-[7px]">(blockies icon)</span>
+          <span class="flex-auto ml-[7px]">Map Me</span>
+        </li>
+        <!-- ... -->
+      </ul>
     </form>
   </Step>
   <Step class=" bg-slate-950/20 p-6 rounded-lg">
     <svelte:fragment slot="header">Contract</svelte:fragment>
     <form class="w-1/2 m-auto mt-20 h-80">
       <label class="label mt-4">
-        <span>Contract Type</span>
+        <span class="ml-[7px]">Contract Type</span>
         <select class="select">
           <option value="1">Vyper</option>
           <option value="2">Stylus</option>
@@ -55,12 +62,12 @@
       </label>
 
       <label class="label mt-4">
-        <span>Path To Contract</span>
+        <span class="ml-[7px]">Path To Contract</span>
         <input class="input" type="file" multiple />
       </label>
 
       <label class="label mt-4">
-        <span>EVM Version</span>
+        <span class="ml-[7px]">EVM Version</span>
         <select class="select">
           <option value="1">Cancun</option>
           <option value="2">Shanghai</option>
@@ -90,7 +97,7 @@
           <option value="1">mapped args</option>
         </select>
       </label> -->
-      <p>Placeholder for mapped args</p>
+      <p class="ml-[7px]">Placeholder for mapped args</p>
       <!-- <span>Arguments</span>
         <input class="input mt-8" type="text" placeholder="arguments" />
       </label>
