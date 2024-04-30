@@ -1,7 +1,38 @@
 <script lang="ts">
+  import { Stepper, Step, type ToastSettings } from "@skeletonlabs/skeleton";
+  import { getToastStore } from "@skeletonlabs/skeleton";
+  const handleStep = () => {
+    console.log("step");
+  };
 </script>
 
-<form class="w-1/3 m-auto mt-24">
+<Stepper on:next={() => handleStep()} class="w-1/3 m-auto mt-24">
+  <Step>
+    <svelte:fragment slot="header">Key To Use</svelte:fragment>
+    <form>
+      <label class="label">
+        <span>Key To Use</span>
+        <select class="select">
+          <option value="1">placeholder</option>
+        </select>
+      </label>
+    </form>
+  </Step>
+
+  <Step>
+    <svelte:fragment slot="header">Key To Use</svelte:fragment>
+    <form>
+      <label class="label">
+        <span>Key To Use</span>
+        <select class="select">
+          <option value="1">placeholder</option>
+        </select>
+      </label>
+    </form>
+  </Step>
+</Stepper>
+
+<!-- <form class="w-1/3 m-auto mt-24">
   <label class="label">
     <span>Key To Use</span>
     <select class="select">
@@ -60,4 +91,4 @@
       >Deploy Contract</button
     >
   </div>
-</form>
+</form> -->
