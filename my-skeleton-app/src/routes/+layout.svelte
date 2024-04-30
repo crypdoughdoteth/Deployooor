@@ -1,6 +1,8 @@
 <script lang="ts">
   import "../app.postcss";
+  import { initializeStores, Modal } from "@skeletonlabs/skeleton";
 
+  initializeStores();
   // Highlight JS
   import hljs from "highlight.js/lib/core";
   import "highlight.js/styles/github-dark.css";
@@ -31,7 +33,10 @@
   } from "@floating-ui/dom";
   import { storePopup } from "@skeletonlabs/skeleton";
   storePopup.set({ computePosition, autoUpdate, flip, shift, offset, arrow });
+  initializeStores();
 </script>
+
+<Modal />
 
 <div class="flex pt-2 pb-2 bg-slate-950/50">
   <a class="btn text-xl" href="/deployContracts">Deploooyer | D_D</a>

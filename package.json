@@ -11,13 +11,16 @@
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^6.5.2",
+    "@fortawesome/free-brands-svg-icons": "^6.5.2",
+    "@fortawesome/free-solid-svg-icons": "^6.5.2",
     "@tauri-apps/api": "^1",
     "add": "^2.0.6",
     "ethers": "^6.11.1",
     "git": "^0.1.5",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-hot-toast": "^2.4.1"
+    "react-hot-toast": "^2.4.1",
+    "svelte-fa": "^4.0.2"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^1",
