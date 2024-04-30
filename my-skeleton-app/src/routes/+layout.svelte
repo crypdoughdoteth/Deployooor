@@ -34,8 +34,8 @@
   storePopup.set({ computePosition, autoUpdate, flip, shift, offset, arrow });
 </script>
 
-<div class="flex">
-  <a class="btn" href="/deployContracts">Developer DAO | D_D</a>
+<div class="flex pt-2 pb-2 bg-slate-950/50">
+  <a class="btn text-xl" href="/deployContracts">Deploooyer | D_D</a>
   <a class="btn ml-24 bg-slate-950 rounded-lg" href="/deployContracts"
     >Deploy Contracts</a
   >
