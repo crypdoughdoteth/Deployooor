@@ -2,8 +2,7 @@ use ethers::{core::rand::thread_rng, signers::Wallet, utils::hex::ToHexExt};
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, path::PathBuf, sync::RwLock};
 use tauri::State;
-
-use crate::DB_POOL;
+use crate::db::DB_POOL;
 
 pub struct AppState {
     pub map: RwLock<HashMap<String, PathBuf>>,

@@ -1,7 +1,5 @@
-use std::{env, fs::File, path::Path, process::Command};
-
-use ethers::core::k256::pkcs8::der::Writer;
 use serde::{Deserialize, Serialize};
+use std::process::Command;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ContractDeployment {
@@ -12,20 +10,15 @@ pub struct ContractDeployment {
 #[tauri::command]
 pub fn stylus_deploy_contract(
     root_path: &str,
-    keystore_path: &str,
-    pass: &str,
+    private_key: &str,
 ) -> Result<ContractDeployment, String> {
-    env::set_current_dir(Path::new(root_path)).unwrap();
-    let mut pw_file = File::create("./password.txt").map_err(|e| e.to_string())?;
-    pw_file.write(pass.as_bytes()).map_err(|e| e.to_string())?;
-
+    let wat = format!("{}{}", "--wasm-file-path=", root_path);
     let output = Command::new("cargo")
         .arg("stylus")
         .arg("deploy")
-        .arg("--keystore-path")
-        .arg(keystore_path)
-        .arg("--keystore-password-path")
-        .arg("./password.txt")
+        .arg(wat)
+        .arg("--private-key")
+        .arg(private_key)
         .output()
         .map_err(|e| e.to_string())?;
 
@@ -55,25 +48,19 @@ pub fn stylus_deploy_contract(
 }
 
 #[tauri::command]
-pub fn stylus_estimate_gas(
-    root_path: &str,
-    keystore_path: &str,
-    pass: &str,
-) -> Result<u128, String> {
-    env::set_current_dir(Path::new(root_path)).unwrap();
-    let mut pw_file = File::create("./password.txt").map_err(|e| e.to_string())?;
-    pw_file.write(pass.as_bytes()).map_err(|e| e.to_string())?;
+pub fn stylus_estimate_gas(root_path: &str, private_key: &str) -> Result<u128, String> {
+    let wat = format!("{}{}", "--wasm-file-path=", root_path);
+
     let output = Command::new("cargo")
         .arg("stylus")
         .arg("deploy")
-        .arg("--keystore-path")
-        .arg(keystore_path)
-        .arg("--keystore-password-path")
-        .arg("./password.txt")
+        .arg(wat)
+        .arg("--private-key")
+        .arg(private_key)
         .arg("--estimate-gas-only")
         .output()
         .map_err(|e| e.to_string())?;
-    std::fs::remove_file("./password.txt").map_err(|e| e.to_string())?;
+
     if !output.status.success() {
         Err("Failed to calculate gas costs".to_string())?
     }

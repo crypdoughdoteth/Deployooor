@@ -1,10 +1,10 @@
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
-use sqlx::{migrate::MigrateDatabase, FromRow, Pool, Sqlite};
+use sqlx::{sqlite::SqliteConnectOptions, FromRow, Pool, Sqlite, SqlitePool};
 use std::path::PathBuf;
 use std::sync::OnceLock;
 use tabled::{settings::Style, Table, Tabled};
-pub const DB_URL: &str = "sqlite://deployer.db";
+pub const DB_URL: &str = "./deployer.db";
 pub static DB_POOL: OnceLock<Pool<Sqlite>> = OnceLock::new();
 
 pub struct Database {
@@ -24,12 +24,13 @@ pub struct Deployment {
 
 impl Database {
     pub async fn init() -> Result<()> {
-        if !Sqlite::database_exists(DB_URL).await.unwrap_or(false) {
-            println!("Creating database {}", DB_URL);
-            Sqlite::create_database(DB_URL).await?;
-        } else {
-            println!("Database already exists");
-        }
+        let options = SqliteConnectOptions::new()
+            .filename(DB_URL)
+            .create_if_missing(true);
+        let pool = SqlitePool::connect_with(options).await?;
+        sqlx::migrate!("../migrations").run(&pool).await?;
+        DB_POOL.set(pool).unwrap();
+        println!("Database initialized!");
         Ok(())
     }
 }

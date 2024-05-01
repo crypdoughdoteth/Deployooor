@@ -13,19 +13,19 @@ use std::{sync::Arc, time::Duration};
 #[derive(Serialize, Deserialize, Clone)]
 pub struct ContractDeployment<'a> {
     provider: &'a str,
-    args: Box<[ConstructorArg<'a>]>,
+    args: Box<[ConstructorArg]>,
     abi: &'a str,
     initcode: &'a str,
     private_key: &'a str,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct ConstructorArg<'a> {
+pub struct ConstructorArg {
     ty: EthType,
-    value: &'a str,
+    value: Box<[String]>,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub enum EthType {
     Address,
     String,
@@ -35,7 +35,7 @@ pub enum EthType {
     FixedArray(Box<EthType>),
     Bytes,
     FixedBytes,
-    Struct(Vec<EthType>),
+    Struct(Box<[EthType]>),
     Bool,
 }
 
@@ -62,19 +62,13 @@ pub async fn deploy_contract(contract: ContractDeployment<'_>) -> Result<(), Str
         0 => factory
             .deploy(())
             .map_err(|e| e.to_string())?
-            .send()
-            .await
-            .map_err(|e| e.to_string())?,
-        1 => factory
-            .deploy_tokens(contract.parse_constructor_args()?)
-            .map_err(|e| e.to_string())?
-            .send()
+            .send_with_receipt()
             .await
             .map_err(|e| e.to_string())?,
         _ => factory
             .deploy_tokens(contract.parse_constructor_args()?)
             .map_err(|e| e.to_string())?
-            .send()
+            .send_with_receipt()
             .await
             .map_err(|e| e.to_string())?,
     };
@@ -89,48 +83,89 @@ impl<'a> ContractDeployment<'a> {
         Ok(self
             .args
             .into_iter()
-            .map(|e| ConstructorArg::parse_constructor_arg(&e.ty, e.value))
+            .map(|e| ConstructorArg::parse_constructor_arg(&e.ty, &e.value))
             .collect::<Result<Vec<Token>, String>>()?)
     }
 }
 
-impl<'a> ConstructorArg<'a> {
+impl ConstructorArg {
     // Arrays and Structs require an inner type since these types are collections of sorts.
     // Structs are heterogeneous types that are encoded as tuples in the Ethereum ABI.
     // For each field of the struct, include the corresponding EthType
     // Arrays will have their type specified as an inner field, values should be comma seperated strings
-    fn parse_constructor_arg(abi_type: &EthType, value: &str) -> Result<Token, String> {
+    fn parse_constructor_arg(abi_type: &EthType, value: &[String]) -> Result<Token, String> {
         match abi_type {
             EthType::Address => Ok(Token::Address(
-                value.parse::<Address>().map_err(|e| e.to_string())?,
+                value
+                    .first()
+                    .ok_or_else(|| "Error: missing argument".to_owned())?
+                    .parse::<Address>()
+                    .map_err(|e| e.to_string())?,
             )),
-            EthType::String => Ok(Token::String(value.to_owned())),
+            EthType::String => Ok(Token::String(
+                value
+                    .first()
+                    .ok_or_else(|| "Error: missing argument".to_owned())?
+                    .to_owned(),
+            )),
             EthType::Uint => Ok(Token::Uint(
-                value.parse::<Uint>().map_err(|e| e.to_string())?,
+                value
+                    .first()
+                    .ok_or_else(|| "Error: missing argument".to_owned())?
+                    .parse::<Uint>()
+                    .map_err(|e| e.to_string())?,
             )),
-            EthType::Int => Ok(Token::Int(value.parse::<Int>().map_err(|e| e.to_string())?)),
+            EthType::Int => Ok(Token::Int(
+                value
+                    .first()
+                    .ok_or_else(|| "Error: missing argument".to_owned())?
+                    .parse::<Int>()
+                    .map_err(|e| e.to_string())?,
+            )),
             EthType::Bool => Ok(Token::Bool(
-                value.parse::<bool>().map_err(|e| e.to_string())?,
+                value
+                    .first()
+                    .ok_or_else(|| "Error: missing argument".to_owned())?
+                    .parse::<bool>()
+                    .map_err(|e| e.to_string())?,
             )),
             EthType::FixedArray(ty) => Ok(Token::FixedArray(
                 value
-                    .split(",")
-                    .map(|e| -> Result<Token, String> { Self::parse_constructor_arg(&*ty, e) })
+                    .into_iter()
+                    .map(|e| -> Result<Token, String> {
+                        Self::parse_constructor_arg(&*ty, &[e.to_owned()])
+                    })
                     .collect::<Result<Vec<Token>, String>>()?,
             )),
             EthType::Array(ty) => Ok(Token::Array(
                 value
-                    .split(",")
-                    .map(|e| -> Result<Token, String> { Self::parse_constructor_arg(&*ty, e) })
+                    .into_iter()
+                    .map(|e| -> Result<Token, String> {
+                        Self::parse_constructor_arg(&*ty, &[e.to_owned()])
+                    })
                     .collect::<Result<Vec<Token>, String>>()?,
             )),
-            EthType::Bytes => Ok(Token::Bytes(value.as_bytes().to_vec())),
-            EthType::FixedBytes => Ok(Token::FixedBytes(value.as_bytes().to_vec())),
-            EthType::Struct(types) => Ok(Token::Tuple(
+            EthType::Bytes => Ok(Token::Bytes(
                 value
-                    .split(",")
-                    .zip(types)
-                    .map(|e| -> Result<Token, String> { Self::parse_constructor_arg(e.1, e.0) })
+                    .first()
+                    .ok_or_else(|| "Error: missing argument".to_owned())?
+                    .as_bytes()
+                    .to_vec(),
+            )),
+            EthType::FixedBytes => Ok(Token::FixedBytes(
+                value
+                    .first()
+                    .ok_or_else(|| "Error: missing argument".to_owned())?
+                    .as_bytes()
+                    .to_vec(),
+            )),
+            EthType::Struct(types) => Ok(Token::Tuple(
+                types
+                    .into_iter()
+                    .zip(value)
+                    .map(|e| -> Result<Token, String> {
+                        Self::parse_constructor_arg(e.0, &[e.1.to_owned()])
+                    })
                     .collect::<Result<Vec<Token>, String>>()?,
             )),
         }
@@ -152,26 +187,28 @@ pub mod tests {
         );
         println!(
             "{}",
-            serde_json::to_string(&EthType::Struct(vec![
+            serde_json::to_string(&EthType::Struct(Box::new([
                 EthType::Address,
                 EthType::Uint,
                 EthType::String
-            ]))
+            ])))
             .unwrap()
         );
         println!(
             "{:?}",
             serde_json::to_string(&ConstructorArg {
                 ty: EthType::Uint,
-                value: "1",
-            }).unwrap()
+                value: Box::new(["1".to_owned()]),
+            })
+            .unwrap()
         );
         println!(
             "{:?}",
             serde_json::to_string(&ConstructorArg {
                 ty: EthType::Array(Box::new(EthType::Address)),
-                value: "0x1f9090aaE28b8a3dCeaDf281B0F12828e676c326",
-            }).unwrap()
+                value: Box::new(["0x1f9090aaE28b8a3dCeaDf281B0F12828e676c326".to_owned()]),
+            })
+            .unwrap()
         );
     }
 }
