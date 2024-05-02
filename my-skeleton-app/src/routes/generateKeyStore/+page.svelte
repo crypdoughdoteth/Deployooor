@@ -2,9 +2,9 @@
 </script>
 
 <form class="w-1/3 m-auto mt-24">
-  <label class="label">
+  <label class="label mt-4">
     <span>Password</span>
-    <input  type="password" />
+    <input class="input" type="password" />
   </label>
   <label class="label mt-4">
     <span>Name</span>
