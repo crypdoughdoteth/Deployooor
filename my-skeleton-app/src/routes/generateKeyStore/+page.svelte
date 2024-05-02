@@ -4,7 +4,7 @@
 <form class="w-1/3 m-auto mt-24">
   <label class="label">
     <span>Password</span>
-    <input class="input" type="password" />
+    <input  type="password" />
   </label>
   <label class="label mt-4">
     <span>Name</span>
