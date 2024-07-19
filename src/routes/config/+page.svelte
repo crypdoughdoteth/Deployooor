@@ -1,4 +1,13 @@
 <script lang="ts">
+  import { invoke } from "@tauri-apps/api/tauri";
+  $: providerURL = "";
+  $: etherscanAPIKey = "";
+  // const handleConfig = () => {
+  //   invoke("set_config", {
+  //     providerURL: providerURL,
+  //     etherscanAPIKey: etherscanAPIKey,
+  //   });
+  // };
 </script>
 
 <form class="w-1/3 m-auto mt-24">

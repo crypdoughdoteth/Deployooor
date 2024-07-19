@@ -1,4 +1,11 @@
 <script lang="ts">
+  import { invoke } from "@tauri-apps/api/tauri";
+  $: name = "";
+  $: depAddr = "";
+  $: date = "";
+  $: SCAddr = "";
+  $: fee = "";
+  $: verified = "";
 </script>
 
 <div class="table-container w-1/2 m-auto mt-24">
