@@ -2,12 +2,13 @@
   import { invoke } from "@tauri-apps/api/tauri";
   $: providerURL = "";
   $: etherscanAPIKey = "";
-  // const handleConfig = () => {
-  //   invoke("set_config", {
-  //     providerURL: providerURL,
-  //     etherscanAPIKey: etherscanAPIKey,
-  //   });
-  // };
+  const handleConfig = () => {
+    console.log("conf");
+    invoke("set_config", {
+      provider: providerURL,
+      etherscan_api: etherscanAPIKey,
+    });
+  };
 </script>
 
 <form class="w-1/3 m-auto mt-24">
@@ -19,7 +20,9 @@
     <span>Etherscan API Key</span>
     <input class="input" type="text" />
   </label>
-  <button type="button" class="btn rounded-lg bg-slate-950 mt-4"
-    >Set Config</button
+  <button
+    on:click={() => handleConfig()}
+    type="button"
+    class="btn rounded-lg bg-slate-950 mt-4">Set Config</button
   >
 </form>
