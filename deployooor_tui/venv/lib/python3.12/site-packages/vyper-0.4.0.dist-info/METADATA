@@ -1,0 +1,147 @@
+Metadata-Version: 2.1
+Name: vyper
+Version: 0.4.0
+Summary: Vyper: the Pythonic Programming Language for the EVM
+Home-page: https://github.com/vyperlang/vyper
+Author: Vyper Team
+Author-email: 
+License: Apache License 2.0
+Keywords: ethereum evm smart contract language
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: Apache Software License
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Requires-Python: >=3.10,<4
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: cbor2 <6,>=5.4.6
+Requires-Dist: asttokens <3,>=2.0.5
+Requires-Dist: pycryptodome <4,>=3.5.1
+Requires-Dist: packaging <24,>=23.1
+Requires-Dist: importlib-metadata
+Requires-Dist: wheel
+Provides-Extra: dev
+Requires-Dist: ipython ; extra == 'dev'
+Requires-Dist: pre-commit ; extra == 'dev'
+Requires-Dist: pyinstaller ; extra == 'dev'
+Requires-Dist: twine ; extra == 'dev'
+Requires-Dist: pytest <9.0,>=8.0 ; extra == 'dev'
+Requires-Dist: pytest-cov <5.0,>=4.1 ; extra == 'dev'
+Requires-Dist: pytest-instafail <1.0,>=0.4 ; extra == 'dev'
+Requires-Dist: pytest-xdist <3.4,>=3.0 ; extra == 'dev'
+Requires-Dist: pytest-split <1.0,>=0.7.0 ; extra == 'dev'
+Requires-Dist: eth-abi <6.0.0,>=5.0.0 ; extra == 'dev'
+Requires-Dist: py-evm <0.11,>=0.10.1b1 ; extra == 'dev'
+Requires-Dist: lark ==1.1.9 ; extra == 'dev'
+Requires-Dist: hypothesis[lark] <7.0,>=6.0 ; extra == 'dev'
+Requires-Dist: eth-stdlib ==0.2.7 ; extra == 'dev'
+Requires-Dist: eth-account ==0.12.2 ; extra == 'dev'
+Requires-Dist: setuptools ; extra == 'dev'
+Requires-Dist: hexbytes >=1.2 ; extra == 'dev'
+Requires-Dist: pyrevm >=0.3.2 ; extra == 'dev'
+Requires-Dist: black ==23.12.0 ; extra == 'dev'
+Requires-Dist: flake8 ==6.1.0 ; extra == 'dev'
+Requires-Dist: flake8-bugbear ==23.12.2 ; extra == 'dev'
+Requires-Dist: flake8-use-fstring ==1.4 ; extra == 'dev'
+Requires-Dist: isort ==5.13.2 ; extra == 'dev'
+Requires-Dist: mypy ==1.5 ; extra == 'dev'
+Provides-Extra: lint
+Requires-Dist: black ==23.12.0 ; extra == 'lint'
+Requires-Dist: flake8 ==6.1.0 ; extra == 'lint'
+Requires-Dist: flake8-bugbear ==23.12.2 ; extra == 'lint'
+Requires-Dist: flake8-use-fstring ==1.4 ; extra == 'lint'
+Requires-Dist: isort ==5.13.2 ; extra == 'lint'
+Requires-Dist: mypy ==1.5 ; extra == 'lint'
+Provides-Extra: test
+Requires-Dist: pytest <9.0,>=8.0 ; extra == 'test'
+Requires-Dist: pytest-cov <5.0,>=4.1 ; extra == 'test'
+Requires-Dist: pytest-instafail <1.0,>=0.4 ; extra == 'test'
+Requires-Dist: pytest-xdist <3.4,>=3.0 ; extra == 'test'
+Requires-Dist: pytest-split <1.0,>=0.7.0 ; extra == 'test'
+Requires-Dist: eth-abi <6.0.0,>=5.0.0 ; extra == 'test'
+Requires-Dist: py-evm <0.11,>=0.10.1b1 ; extra == 'test'
+Requires-Dist: lark ==1.1.9 ; extra == 'test'
+Requires-Dist: hypothesis[lark] <7.0,>=6.0 ; extra == 'test'
+Requires-Dist: eth-stdlib ==0.2.7 ; extra == 'test'
+Requires-Dist: eth-account ==0.12.2 ; extra == 'test'
+Requires-Dist: setuptools ; extra == 'test'
+Requires-Dist: hexbytes >=1.2 ; extra == 'test'
+Requires-Dist: pyrevm >=0.3.2 ; extra == 'test'
+
+<img src="https://raw.githubusercontent.com/vyperlang/vyper/master/docs/logo.svg?sanitize=true" alt="" width="110">
+
+[![Build Status](https://github.com/vyperlang/vyper/workflows/Test/badge.svg)](https://github.com/vyperlang/vyper/actions/workflows/test.yml)
+[![Documentation Status](https://readthedocs.org/projects/vyper/badge/?version=latest)](http://docs.vyperlang.org/en/latest/?badge=latest "ReadTheDocs")
+[![Discord](https://img.shields.io/discord/969926564286459934.svg?label=%23vyper)](https://discord.gg/6tw7PTM7C2)
+
+[![PyPI](https://badge.fury.io/py/vyper.svg)](https://pypi.org/project/vyper "PyPI")
+[![Docker](https://img.shields.io/docker/cloud/build/vyperlang/vyper)](https://hub.docker.com/r/vyperlang/vyper "DockerHub")
+
+[![Coverage Status](https://codecov.io/gh/vyperlang/vyper/branch/master/graph/badge.svg)](https://codecov.io/gh/vyperlang/vyper "Codecov")
+[![Language grade: Python](https://github.com/vyperlang/vyper/workflows/CodeQL/badge.svg)](https://github.com/vyperlang/vyper/actions/workflows/codeql.yml)
+
+# Getting Started
+See [Installing Vyper](http://docs.vyperlang.org/en/latest/installing-vyper.html) to install vyper.
+See [Tools and Resources](https://github.com/vyperlang/vyper/wiki/Vyper-tools-and-resources) for an additional list of framework and tools with vyper support.
+See [Documentation](http://docs.vyperlang.org/en/latest/index.html) for the documentation and overall design goals of the Vyper language.
+
+See [learn.vyperlang.org](https://learn.vyperlang.org/) for **learning Vyper by building a Pokémon game**.
+See [try.vyperlang.org](https://try.vyperlang.org/) to use Vyper in a hosted jupyter environment!
+
+**Note: Vyper is beta software, use with care**
+
+# Installation
+See the [Vyper documentation](https://docs.vyperlang.org/en/latest/installing-vyper.html)
+for build instructions.
+
+# Compiling a contract
+To compile a contract, use:
+```bash
+vyper your_file_name.vy
+```
+***generate bytecode***
+
+    vyper -f bytecode file-name.vy > file-name.bin
+
+***generate abi***
+
+    vyper -f abi file-name.vy > file-name.abi
+
+There is also an [online compiler](https://vyper.online/) available you can use to experiment with
+the language and compile to ``bytecode`` and/or ``IR``.
+
+**Note: While the vyper version of the online compiler is updated on a regular basis it might
+be a bit behind the latest version found in the master branch of this repository.**
+
+## Testing (using pytest)
+
+(Complete [installation steps](https://docs.vyperlang.org/en/latest/installing-vyper.html) first.)
+
+```bash
+make dev-init
+python setup.py test
+```
+
+## Developing (working on the compiler)
+
+A useful script to have in your PATH is something like the following:
+```bash
+$ cat ~/.local/bin/vyc
+#!/usr/bin/env bash
+PYTHONPATH=. python vyper/cli/vyper_compile.py "$@"
+```
+
+To run a python performance profile (to find compiler perf hotspots):
+```bash
+PYTHONPATH=. python -m cProfile -s tottime vyper/cli/vyper_compile.py "$@"
+```
+
+To get a call graph from a python profile, https://stackoverflow.com/a/23164271/ is helpful.
+
+
+# Contributing
+* See Issues tab, and feel free to submit your own issues
+* Add PRs if you discover a solution to an existing issue
+* For further discussions and questions, post in [Discussions](https://github.com/vyperlang/vyper/discussions) or talk to us on [Discord](https://discord.gg/6tw7PTM7C2)
+* For more information, see [Contributing](http://docs.vyperlang.org/en/latest/contributing.html)

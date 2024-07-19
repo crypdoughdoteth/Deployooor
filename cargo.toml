@@ -1,0 +1,7 @@
+[workspace]
+resolver = "2"
+members = [
+    "deployooor_gui/src-tauri",
+    "deployooor_tui",
+]
+
