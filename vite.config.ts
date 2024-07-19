@@ -1,9 +1,10 @@
-import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react";
+import { purgeCss } from 'vite-plugin-tailwind-purgecss';
+import { sveltekit } from '@sveltejs/kit/vite';
+import { defineConfig } from 'vite';
 
 // https://vitejs.dev/config/
 export default defineConfig(async () => ({
-  plugins: [react()],
+  plugins: [sveltekit(), purgeCss()],
 
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
   //
