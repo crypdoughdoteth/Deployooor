@@ -23,6 +23,12 @@
     // Returns the updated response value
     response: (r: string) => console.log("response:", r),
   };
+  $: keyToUse = "";
+  $: walletPassword = "";
+  $: contractType = "";
+  $: pathToContract = "";
+  $: evmVersion = "";
+  $: arguments = "";
 </script>
 
 <Stepper on:next={() => handleStep()} class="w-1/3 m-auto mt-24 rounded-sm">
@@ -73,8 +79,8 @@
           <option value="1">Cancun</option>
           <option value="2">Shanghai</option>
           <option value="3">Berlin</option>
-          <option value="3">Paris</option>
-          <option value="3">London</option>
+          <option value="4">Paris</option>
+          <option value="5">London</option>
         </select>
       </label>
     </form>

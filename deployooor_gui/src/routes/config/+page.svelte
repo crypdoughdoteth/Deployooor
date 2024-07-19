@@ -3,7 +3,6 @@
   $: providerURL = "";
   $: etherscanAPIKey = "";
   const handleConfig = () => {
-    console.log("conf");
     invoke("set_config", {
       provider: providerURL,
       etherscan_api: etherscanAPIKey,

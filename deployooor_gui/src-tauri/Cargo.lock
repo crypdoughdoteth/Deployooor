@@ -893,6 +893,24 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7e962a19be5cfc3f3bf6dd8f61eb50107f356ad6270fbb3ed41476571db78be5"
 
 [[package]]
+name = "deployooor_gui"
+version = "0.0.0"
+dependencies = [
+ "anyhow",
+ "ethers",
+ "once_cell",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "sqlx",
+ "tabled",
+ "tauri",
+ "tauri-build",
+ "tokio",
+ "vyper-rs",
+]
+
+[[package]]
 name = "der"
 version = "0.7.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5854,24 +5872,6 @@ checksum = "d3b17ae1f6c8a2b28506cd96d412eebf83b4a0ff2cbefeeb952f2f9dfa44ba18"
 dependencies = [
  "cc",
  "libc",
-]
-
-[[package]]
-name = "vyper-deployooor"
-version = "0.0.0"
-dependencies = [
- "anyhow",
- "ethers",
- "once_cell",
- "reqwest",
- "serde",
- "serde_json",
- "sqlx",
- "tabled",
- "tauri",
- "tauri-build",
- "tokio",
- "vyper-rs",
 ]
 
 [[package]]
