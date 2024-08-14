@@ -221,7 +221,7 @@ impl<'a> Deploy<'a> {
 
         Ok(receipt
             .contract_address
-            .expect("Failed to get contract address"))
+            .ok_or_else(|| Errors::MissingContractAddress)?)
     }
 }
 

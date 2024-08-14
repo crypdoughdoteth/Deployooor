@@ -6,6 +6,8 @@ use vyper_rs::vyper_errors::VyperErrors;
 
 #[derive(Error, Debug)]
 pub enum Errors {
+    #[error("No contract address")]
+    MissingContractAddress,
     #[error(transparent)]
     LocalSignerError(#[from] LocalSignerError),
     #[error("Could not locate key in state")]

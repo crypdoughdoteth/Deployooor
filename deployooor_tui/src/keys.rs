@@ -2,16 +2,13 @@ use crate::{database::DB_POOL, errors::Errors, App};
 use alloy::{
     network::EthereumWallet,
     signers::{
-        k256::{elliptic_curve::SecretKey, Secp256k1},
+        k256::{ecdsa::SigningKey, elliptic_curve::SecretKey, Secp256k1},
         local::LocalSigner,
     },
 };
 use rand::thread_rng;
 use serde::{Deserialize, Serialize};
-use std::{
-    collections::HashMap,
-    path::PathBuf,
-};
+use std::{collections::HashMap, path::PathBuf};
 
 #[derive(Serialize, Deserialize)]
 pub struct Account {
@@ -26,7 +23,7 @@ pub struct Keys {
     path: String,
 }
 
-impl<'a> App<'a> {
+impl App {
     pub async fn create_key(
         &mut self,
         mut path: PathBuf,
@@ -46,17 +43,13 @@ impl<'a> App<'a> {
         )
         .execute(DB_POOL.get().unwrap())
         .await?;
-//        self.keys
-//            .insert(nickname.to_string(), PathBuf::from(path.clone()));
+        //        self.keys
+        //            .insert(nickname.to_string(), PathBuf::from(path.clone()));
         Ok(())
     }
 
-    pub async fn decrypt(&self, name: &str, password: &str) -> Result<EthereumWallet, Errors> {
-//        let path = self.keys.get(name).ok_or_else(|| Errors::KeyNotFound)?;
-//        Ok(EthereumWallet::from(LocalSigner::decrypt_keystore(
-//            path, password,
-//        )?))
-          todo!()
+    pub async fn decrypt(&self, path: &str, password: &str) -> Result<LocalSigner<SigningKey>, Errors> {
+        Ok(LocalSigner::decrypt_keystore(path, password)?)
     }
 
     pub async fn load_keys_to_state() -> Result<HashMap<String, PathBuf>, Errors> {

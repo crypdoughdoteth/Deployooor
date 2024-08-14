@@ -1,23 +1,15 @@
 use ratatui::{
-    layout::Rect,
-    style::{Color, Modifier, Style, Stylize},
-    text::Text,
-    widgets::{Block, List, ListDirection, Padding, Paragraph, Widget},
+    layout::{Constraint, Layout, Rect},
+    widgets::{Paragraph, Widget},
 };
 
-use crate::{config::NetworkSettings, database::Deployment, deploy::Deploy};
-
-// localize state to screens
-// reset after changing screens
-// global state is stored in App
-
-#[derive(Default)]
-pub enum Screen<'a> {
+#[derive(Default, Clone, Copy)]
+pub enum Screen {
     #[default]
     Home,
-    Settings(ConfigLocalState),
-    Deploy(Deploy<'a>),
-    Logs(Vec<Deployment>),
+    Settings,
+    Deploy,
+    Logs,
 }
 
 #[derive(Default)]
@@ -35,47 +27,58 @@ pub struct ConfigLocalState {
     pub editing: Mode,
 }
 
-impl<'a> Widget for &mut Screen<'a> {
+impl Widget for Screen {
     fn render(self, area: ratatui::prelude::Rect, buf: &mut ratatui::prelude::Buffer)
     where
         Self: Sized,
     {
         match self {
             Screen::Home => self.render_home(area, buf),
-            Screen::Settings(ls) => todo!(),
-            Screen::Deploy(_) => todo!(),
-            Screen::Logs(_) => todo!(),
+            Screen::Settings => self.render_settings(area, buf),
+            Screen::Deploy => todo!(),
+            Screen::Logs => todo!(),
         }
     }
 }
 
-impl<'a> Screen<'a> {
-    fn render_home(&mut self, area: Rect, buf: &mut ratatui::prelude::Buffer) {
-        Paragraph::new("Welcome to Deployooor TUI!")
-            .block(
-                Block::bordered()
-                    .white()
-                    .title("Deployooor TUI".bold().into_right_aligned_line())
-                    .title_bottom("Crypdough.eth • Developer DAO".bold())
-                    .title_style(Style::new().add_modifier(Modifier::ITALIC))
-                    .padding(Padding::new(0, 0, area.height / 8, 0)),
-            )
-            .centered()
-            .render(area, buf);
+const WELCOME: &'static str = "
+██████  ███████ ██████  ██       ██████  ██    ██  ██████   ██████   ██████  ██████  
+██   ██ ██      ██   ██ ██      ██    ██  ██  ██  ██    ██ ██    ██ ██    ██ ██   ██ 
+██   ██ █████   ██████  ██      ██    ██   ████   ██    ██ ██    ██ ██    ██ ██████  
+██   ██ ██      ██      ██      ██    ██    ██    ██    ██ ██    ██ ██    ██ ██   ██ 
+██████  ███████ ██      ███████  ██████     ██     ██████   ██████   ██████  ██   ██ 
+";
 
-        let items = [
-            Text::from("Begin Deployment Process     -     <F5>").centered(),
-            Text::from("                                       ").centered(),
-            Text::from("View Deployment Logs         -     <F6>").centered(),
-            Text::from("                                       ").centered(),
-            Text::from("Deployooor Settings          -     <F7>").centered(),
-        ];
-        List::new(items)
-            .block(Block::default().padding(Padding::new(0, 0, area.height / 2, 0)))
-            .highlight_style(Style::default().add_modifier(Modifier::ITALIC))
-            .highlight_symbol(">>")
-            .repeat_highlight_symbol(true)
-            .direction(ListDirection::TopToBottom)
-            .render(area, buf);
+const SETTINGS: &'static str = "
+███████ ███████ ████████ ████████ ██ ███    ██  ██████  ███████ 
+██      ██         ██       ██    ██ ████   ██ ██       ██      
+███████ █████      ██       ██    ██ ██ ██  ██ ██   ███ ███████ 
+     ██ ██         ██       ██    ██ ██  ██ ██ ██    ██      ██ 
+███████ ███████    ██       ██    ██ ██   ████  ██████  ███████ 
+";
+
+use Constraint::{Length, Max, Min, Percentage};
+
+impl Screen {
+    fn render_home(self, area: Rect, buf: &mut ratatui::prelude::Buffer) {
+        let vertical = Layout::vertical([Max(8), Min(8), Length(2)]);
+        let [header_area, _, footer_area] = vertical.areas(area);
+
+        Paragraph::new(WELCOME).centered().render(header_area, buf);
+
+        Paragraph::new("Written By Crypdough.eth")
+            .centered()
+            .render(footer_area, buf);
+    }
+
+    fn render_settings(self, area: Rect, buf: &mut ratatui::prelude::Buffer) {
+        let vertical = Layout::vertical([Max(8), Min(8), Length(2)]);
+        let [header_area, _, footer_area] = vertical.areas(area);
+
+        Paragraph::new(SETTINGS).centered().render(header_area, buf);
+
+        Paragraph::new("Press Q To Return Back To The Main Menu")
+            .centered()
+            .render(footer_area, buf);
     }
 }
