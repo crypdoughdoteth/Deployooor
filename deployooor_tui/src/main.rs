@@ -1,7 +1,7 @@
 use std::{collections::HashMap, io::stdout, path::PathBuf};
 
 use color_eyre::{config::HookBuilder, Result};
-use config::Config;
+use deployooor_core::config::Config;
 use ratatui::{
     backend::{Backend, CrosstermBackend},
     crossterm::{
@@ -13,18 +13,12 @@ use ratatui::{
     style::{Modifier, Style, Stylize},
     terminal::Terminal,
     text::Text,
-    widgets::{Block, List, ListDirection, ListState, Padding, Widget},
+    widgets::{Block, List, ListDirection, ListState, Padding},
     Frame,
 };
 use ui::Screen;
 use utils::center;
 
-pub mod config;
-pub mod database;
-pub mod deploy;
-pub mod errors;
-pub mod keys;
-pub mod solc;
 pub mod ui;
 pub mod utils;
 
@@ -35,7 +29,6 @@ struct App {
     config: Config,
     screen: Screen,
     home_list: ListState,
-    
 }
 
 #[derive(Default, Clone, Copy, PartialEq, Eq)]
@@ -115,7 +108,7 @@ impl App {
                     // render list
                     self.render_home_list(frame, frame.size());
                 }
-                Screen::Settings => {},
+                Screen::Settings => {}
                 Screen::Deploy => todo!(),
                 Screen::Logs => todo!(),
             }
@@ -142,7 +135,7 @@ impl App {
                     KeyCode::Up => self.home_list.select_previous(),
                     KeyCode::Down => self.home_list.select_next(),
                     KeyCode::Char('c') => self.screen = Screen::Settings,
-                    _ => {},
+                    _ => {}
                 }
             }
         }

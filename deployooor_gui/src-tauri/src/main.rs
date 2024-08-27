@@ -4,40 +4,25 @@ pub mod config;
 pub mod db;
 pub mod deploy;
 pub mod key_tree;
-pub mod solc;
-pub mod stylus;
 pub mod verification;
-pub mod vyper;
 use std::sync::RwLock;
 
 use config::{get_config, set_config};
-use db::{db_read, db_write, Database};
 use deploy::deploy_contract;
 use key_tree::{create_key, get_key_by_name, list_keys, load_keys_to_state, AppState};
-use solc::compile_solidity;
-use stylus::{stylus_deploy_contract, stylus_estimate_gas};
-use vyper::{compile_version, fetch_data};
 // use verification::etherscan_verification;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    Database::init().await?;
-    let key_state = RwLock::new(load_keys_to_state().await.unwrap());
+    let key_state = RwLock::new(load_keys_to_state().unwrap());
 
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
-            fetch_data,
             set_config,
             get_config,
             get_key_by_name,
-            compile_version,
-            db_read,
-            db_write,
             list_keys,
             create_key,
-            stylus_deploy_contract,
-            stylus_estimate_gas,
-            compile_solidity,
             deploy_contract,
         ])
         .manage(AppState { map: key_state })

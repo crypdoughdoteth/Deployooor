@@ -1,8 +1,11 @@
-use ethers::{core::rand::thread_rng, signers::Wallet, utils::hex::ToHexExt};
+use deployooor_core::{database::Database, keys::Keys};
 use serde::{Deserialize, Serialize};
-use std::{collections::HashMap, path::PathBuf, sync::RwLock};
+use std::{
+    collections::HashMap,
+    path::{Path, PathBuf},
+    sync::RwLock,
+};
 use tauri::State;
-use crate::db::DB_POOL;
 
 pub struct AppState {
     pub map: RwLock<HashMap<String, PathBuf>>,
@@ -16,29 +19,26 @@ pub struct Account {
 }
 
 #[tauri::command]
-pub async fn create_key(
+pub fn create_key(
     mut path: String,
     nickname: String,
     password: String,
     state: State<'_, AppState>,
 ) -> Result<(), String> {
     // create keystore
-    Wallet::new_keystore(&path, &mut thread_rng(), password, Some(&nickname))
-        .map_err(|e| e.to_string())?;
+
+    Keys::new(Path::new(&path), &nickname, &password).map_err(|e| e.to_string())?;
+
     path.push_str(format!("/{}", &nickname).as_str());
+    Database::default()
+        .record_key_metadata(Path::new(&path), &nickname)
+        .map_err(|e| e.to_string())?;
+
     state
         .map
         .write()
         .unwrap()
-        .insert(nickname.clone(), PathBuf::from(path.clone()));
-    sqlx::query!(
-        "INSERT INTO keys (name, path) VALUES ($1, $2)",
-        nickname,
-        path,
-    )
-    .execute(DB_POOL.get().unwrap())
-    .await
-    .map_err(|e| e.to_string())?;
+        .insert(nickname, PathBuf::from(path));
     Ok(())
 }
 
@@ -68,9 +68,7 @@ pub fn get_key_by_name(
 ) -> Result<Account, String> {
     let state = state.inner().map.read().unwrap();
     if let Some(state) = state.get(name) {
-        let wallet = Wallet::decrypt_keystore(&state, password).map_err(|e| e.to_string())?;
-        let pk = wallet.signer().to_bytes().encode_hex();
-        println!("{pk}");
+        let pk = Keys::decrypt_to_string(&state, password).map_err(|e| e.to_string())?;
         Ok(Account {
             name: name.to_string(),
             path: state.to_owned(),
@@ -81,19 +79,12 @@ pub fn get_key_by_name(
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Keys {
-    name: String,
-    path: String,
-}
-
-pub async fn load_keys_to_state() -> Result<HashMap<String, PathBuf>, String> {
-    Ok(sqlx::query_as!(Keys, "SELECT name, path FROM Keys")
-        .fetch_all(DB_POOL.get().unwrap())
-        .await
+pub fn load_keys_to_state() -> Result<HashMap<String, PathBuf>, String> {
+    Ok(Database::default()
+        .get_all_keys_metadata()
         .map_err(|e| e.to_string())?
         .into_iter()
-        .fold(HashMap::new(), |mut acc, x| {
+        .fold(HashMap::new(), |mut acc, x: Keys| {
             acc.insert(x.name, PathBuf::from(x.path));
             acc
         }))
@@ -103,10 +94,12 @@ pub async fn load_keys_to_state() -> Result<HashMap<String, PathBuf>, String> {
 
 #[cfg(test)]
 pub mod tests {
-    use ethers::{core::rand::thread_rng, signers::Wallet};
+    use std::path::Path;
+
+    use deployooor_core::keys::Keys;
 
     #[test]
     pub fn key_gen() {
-        Wallet::new_keystore("./", &mut thread_rng(), "123", Some("testing_keystore")).unwrap();
+        Keys::new(Path::new("./"), "testing", "123").unwrap()
     }
 }

@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = [
+members = [ "deployooor_core",
     "deployooor_gui/src-tauri",
     "deployooor_tui",
 ]

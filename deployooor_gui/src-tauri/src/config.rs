@@ -1,34 +1,21 @@
-use std::{fs::File, io::BufReader, path::PathBuf};
+use deployooor_core::config::{Config, NetworkSettings};
 
-use serde::{Deserialize, Serialize};
-use serde_json::to_writer_pretty;
-
-#[derive(Serialize, Deserialize)]
-pub struct Config {
-    provider: String,
-    etherscan_api: String,
+#[tauri::command]
+pub async fn set_config(network_settings: Vec<NetworkSettings>) -> Result<Config, String> {
+    let config = Config::new(network_settings);
+    config.set_config().map_err(|e| e.to_string()).map_err(|e| e.to_string())?;
+    Ok(config)
 }
 
 #[tauri::command]
-pub async fn set_config(
-    provider: String,
-    etherscan_api: String,
-) -> Result<Config, String> {
-    let config_path: PathBuf = PathBuf::from("./vyper_deployer_config.json");
-    let conf: Config = Config {
-        provider,
-        etherscan_api,
-    };
-
-    let file: File = File::create(config_path).map_err(|e| e.to_string())?;
-    to_writer_pretty(file, &conf).map_err(|e| e.to_string())?;
-    Ok(conf)
+pub async fn add_to_config(network_settings: NetworkSettings) -> Result<Config, String> {
+    let mut config = Config::from_default_file().map_err(|e| e.to_string())?;
+    config.push(network_settings);
+    config.set_config().map_err(|e| e.to_string()).map_err(|e| e.to_string())?;
+    Ok(config)
 }
 
 #[tauri::command]
 pub async fn get_config() -> Result<Config, String> {
-    let file: File = File::open("./vyper_deployer_config.json").map_err(|e| e.to_string())?;
-    let reader: BufReader<File> = BufReader::new(file);
-    let conf: Config = serde_json::from_reader(reader).map_err(|e| e.to_string())?;
-    Ok(conf)
+    Ok(Config::from_default_file().map_err(|e| e.to_string())?)
 }
