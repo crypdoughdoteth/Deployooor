@@ -10,8 +10,8 @@ pub struct ContractDeployment<'a> {
 }
 
 #[tauri::command]
-pub async fn deploy_contract(contract: ContractDeployment<'_>) -> Result<(), String> {
-    match contract.args {
+pub async fn deploy_contract(contract: ContractDeployment<'_>) -> Result<String, String> {
+    Ok(match contract.args {
         Some(a) => Deploy::init(
             contract.provider,
             contract.private_key,
@@ -24,7 +24,6 @@ pub async fn deploy_contract(contract: ContractDeployment<'_>) -> Result<(), Str
     }
     .deploy()
     .await
-    .map_err(|e| e.to_string())?;
-
-    Ok(())
+    .map_err(|e| e.to_string())?
+    .to_string())
 }

@@ -1,17 +1,9 @@
 use std::path::{Path, PathBuf};
 
-use crate::{database::Database, errors::Errors};
-use alloy::{
-    hex::ToHex,
-    network::EthereumWallet,
-    signers::{
-        k256::{
-            ecdsa::{self, SigningKey},
-            elliptic_curve::SecretKey,
-            Secp256k1,
-        },
-        local::LocalSigner,
-    },
+use crate::errors::Errors;
+use alloy::signers::{
+    k256::{ecdsa, elliptic_curve::SecretKey, Secp256k1},
+    local::LocalSigner,
 };
 use rand::thread_rng;
 use serde::{Deserialize, Serialize};
@@ -22,11 +14,8 @@ pub struct Account {
     pk: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Keys {
-    pub name: String,
-    pub path: String,
-}
+#[derive(Debug, Clone)]
+pub struct Keys;
 
 impl Keys {
     pub fn new(path: &Path, nickname: &str, password: &str) -> Result<(), Errors> {

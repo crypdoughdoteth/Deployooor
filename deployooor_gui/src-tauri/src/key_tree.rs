@@ -1,4 +1,4 @@
-use deployooor_core::{database::Database, keys::Keys};
+use deployooor_core::{database::{Database, KeyMetadata}, keys::Keys};
 use serde::{Deserialize, Serialize};
 use std::{
     collections::HashMap,
@@ -21,8 +21,8 @@ pub struct Account {
 #[tauri::command]
 pub fn create_key(
     mut path: String,
-    nickname: String,
-    password: String,
+    nickname: &str,
+    password: &str,
     state: State<'_, AppState>,
 ) -> Result<(), String> {
     // create keystore
@@ -38,7 +38,7 @@ pub fn create_key(
         .map
         .write()
         .unwrap()
-        .insert(nickname, PathBuf::from(path));
+        .insert(nickname.to_string(), PathBuf::from(path));
     Ok(())
 }
 
@@ -84,7 +84,7 @@ pub fn load_keys_to_state() -> Result<HashMap<String, PathBuf>, String> {
         .get_all_keys_metadata()
         .map_err(|e| e.to_string())?
         .into_iter()
-        .fold(HashMap::new(), |mut acc, x: Keys| {
+        .fold(HashMap::new(), |mut acc: HashMap<String, PathBuf>, x: KeyMetadata| {
             acc.insert(x.name, PathBuf::from(x.path));
             acc
         }))

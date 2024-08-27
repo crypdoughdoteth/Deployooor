@@ -1,4 +1,4 @@
-use crate::{errors::Errors, keys::Keys};
+use crate::errors::Errors;
 use rusqlite::{Connection, Result};
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
@@ -17,6 +17,13 @@ pub struct Deployment {
     pub network: String,
     pub fee: String,
     pub verified: bool,
+}
+
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct KeyMetadata {
+    pub name: String, 
+    pub path: String,
 }
 
 impl Default for Database {
@@ -103,31 +110,31 @@ impl Database {
         Ok(())
     }
 
-    pub fn get_key_metadata(&self, offset: usize) -> Result<Vec<Keys>, Errors> {
+    pub fn get_key_metadata(&self, offset: usize) -> Result<Vec<KeyMetadata>, Errors> {
         let mut statement = self
             .conn
-            .prepare("SELECT name, path from Keys LIMIT 20 OFFSET ?1")?;
+            .prepare("SELECT name, path from keys LIMIT 20 OFFSET ?1")?;
         let query_map = statement
             .query_map([offset], |e| {
-                Ok(Keys {
+                Ok(KeyMetadata {
                     name: e.get(0)?,
                     path: e.get(1)?,
                 })
             })?
-            .collect::<Result<Vec<Keys>>>()?;
+            .collect::<Result<Vec<KeyMetadata>>>()?;
         Ok(query_map)
     }
 
-    pub fn get_all_keys_metadata(&self) -> Result<Vec<Keys>, Errors> {
-        let mut statement = self.conn.prepare("SELECT name, path from Keys")?;
+    pub fn get_all_keys_metadata(&self) -> Result<Vec<KeyMetadata>, Errors> {
+        let mut statement = self.conn.prepare("SELECT name, path from KeyMetadata")?;
         let query_map = statement
             .query_map([], |e| {
-                Ok(Keys {
+                Ok(KeyMetadata {
                     name: e.get(0)?,
                     path: e.get(1)?,
                 })
             })?
-            .collect::<Result<Vec<Keys>>>()?;
+            .collect::<Result<Vec<KeyMetadata>>>()?;
         Ok(query_map)
     }
 }
