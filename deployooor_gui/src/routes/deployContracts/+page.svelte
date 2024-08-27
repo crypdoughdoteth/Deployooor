@@ -5,6 +5,7 @@
   import { invoke } from "@tauri-apps/api/tauri";
   import { type ModalSettings } from "@skeletonlabs/skeleton";
   import { onMount } from "svelte";
+  import { type ContractDeployment } from "./DeploymentTypes";
 
   $: keyList = [];
   $: keyToUse = "";
@@ -12,7 +13,7 @@
   $: contractType = "";
   $: pathToContract = "";
   $: evmVersion = "";
-  $: arguements = "";
+  $: arguements = [];
   onMount(async () => {
     keyList = await invoke("list_keys");
     console.log(keyList);
@@ -20,36 +21,13 @@
 
   function onCompleteHandler(e: Event): void {
     e.preventDefault();
-    enum EthType {
-      Address,
-      String,
-      Uint,
-      Int,
-      Array,
-      FixedArray,
-      Bytes,
-      FixedBytes,
-      Struct,
-      Bool,
-    }
-    const contractDeployment = {
-      // provider: keyToUse,
-      args: [
-        {
-          ty: EthType.String,
-          value: [arguements],
-        },
-      ],
-      // abi: pathToContract,
-      // initcode: evmVersion,
-      private_key: walletPassword,
-    };
+    console.log(arguements)
 
-    // invoke("deploy_contract", {
-    //   key: keyToUse,
-    //   password: walletPassword,
-    //   contract_type: contractType,
-    // }
+  const ContractDeployment:ContractDeployment = {
+    provider: keyToUse,
+    args: arguements,
+    path: pathToContract,
+    private_key: keyToUse,
   }
   const handleStep = () => {
     console.log("step");
