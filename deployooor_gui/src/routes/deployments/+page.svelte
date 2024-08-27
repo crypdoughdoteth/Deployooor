@@ -8,7 +8,7 @@
   $: verified = "";
 </script>
 
-<div class="table-container w-1/2 m-auto mt-24">
+<div class="table-container w-3/4 m-auto mt-24">
   <table class="table table-hover">
     <thead>
       <tr>

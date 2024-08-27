@@ -39,6 +39,7 @@ declare module '$env/static/private' {
 	export const HISTSIZE: string;
 	export const HOSTNAME: string;
 	export const NODE: string;
+	export const DOTNET_ROOT: string;
 	export const COLOR: string;
 	export const npm_config_local_prefix: string;
 	export const npm_config_globalconfig: string;
@@ -63,6 +64,7 @@ declare module '$env/static/private' {
 	export const VIRTUALENVWRAPPER_PYTHON: string;
 	export const TAURI_ARCH: string;
 	export const INIT_CWD: string;
+	export const DOTNET_BUNDLE_EXTRACT_BASE_DIR: string;
 	export const npm_lifecycle_script: string;
 	export const npm_config_npm_version: string;
 	export const TERM: string;
@@ -97,6 +99,7 @@ declare module '$env/static/private' {
 	export const HOSTTYPE: string;
 	export const PULSE_SERVER: string;
 	export const npm_node_execpath: string;
+	export const OLDPWD: string;
 	export const NODE_ENV: string;
 }
 
@@ -142,6 +145,7 @@ declare module '$env/dynamic/private' {
 		HISTSIZE: string;
 		HOSTNAME: string;
 		NODE: string;
+		DOTNET_ROOT: string;
 		COLOR: string;
 		npm_config_local_prefix: string;
 		npm_config_globalconfig: string;
@@ -166,6 +170,7 @@ declare module '$env/dynamic/private' {
 		VIRTUALENVWRAPPER_PYTHON: string;
 		TAURI_ARCH: string;
 		INIT_CWD: string;
+		DOTNET_BUNDLE_EXTRACT_BASE_DIR: string;
 		npm_lifecycle_script: string;
 		npm_config_npm_version: string;
 		TERM: string;
@@ -200,6 +205,7 @@ declare module '$env/dynamic/private' {
 		HOSTTYPE: string;
 		PULSE_SERVER: string;
 		npm_node_execpath: string;
+		OLDPWD: string;
 		NODE_ENV: string;
 		[key: `PUBLIC_${string}`]: undefined;
 		[key: `${string}`]: string | undefined;

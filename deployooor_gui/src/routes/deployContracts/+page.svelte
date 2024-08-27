@@ -3,65 +3,114 @@
   import { getToastStore } from "@skeletonlabs/skeleton";
   import { getModalStore } from "@skeletonlabs/skeleton";
   import { invoke } from "@tauri-apps/api/tauri";
-  const handleStep = () => {
-    console.log("step");
-  };
-  const modalStore = getModalStore();
-  const formData = {
-    data: "placeholder",
-    type: "placeholder",
-  };
+  import { type ModalSettings } from "@skeletonlabs/skeleton";
+  import { onMount } from "svelte";
 
-  const modal: ModalSettings = {
-    type: "prompt",
-    // Data
-    title: "Enter Arguments",
-    body: "Provide your Arguments",
-    // Populates the input value and attributes
-    value: "Value",
-    valueAttr: { type: "text", minlength: 3, maxlength: 10, required: true },
-    // Returns the updated response value
-    response: (r: string) => console.log("response:", r),
-  };
+  $: keyList = [];
   $: keyToUse = "";
   $: walletPassword = "";
   $: contractType = "";
   $: pathToContract = "";
   $: evmVersion = "";
-  $: arguments = "";
+  $: arguements = "";
+  onMount(async () => {
+    keyList = await invoke("list_keys");
+    console.log(keyList);
+  });
+
+  function onCompleteHandler(e: Event): void {
+    e.preventDefault();
+    enum EthType {
+      Address,
+      String,
+      Uint,
+      Int,
+      Array,
+      FixedArray,
+      Bytes,
+      FixedBytes,
+      Struct,
+      Bool,
+    }
+    const contractDeployment = {
+      // provider: keyToUse,
+      args: [
+        {
+          ty: EthType.String,
+          value: [arguements],
+        },
+      ],
+      // abi: pathToContract,
+      // initcode: evmVersion,
+      private_key: walletPassword,
+    };
+
+    // invoke("deploy_contract", {
+    //   key: keyToUse,
+    //   password: walletPassword,
+    //   contract_type: contractType,
+    // }
+  }
+  const handleStep = () => {
+    console.log("step");
+  };
+  const modalStore = getModalStore();
+  const formData = {
+    data: "value",
+    type: "placeholder",
+  };
+
+  const modal: ModalSettings = {
+    type: "prompt",
+    title: "Enter Arguments",
+    body: "Provide your Arguments",
+    value: "",
+    valueAttr: { type: "text", minlength: 3, maxlength: 100, required: true },
+    response: (r: string) => (arguements = r),
+  };
 </script>
 
-<Stepper on:next={() => handleStep()} class="w-1/3 m-auto mt-24 rounded-sm">
+<Stepper
+  on:next={() => handleStep()}
+  on:complete={onCompleteHandler}
+  class="w-2/3 m-auto mt-24 rounded-sm"
+>
   <Step class="rounded-lg bg-slate-950/20 p-6">
     <svelte:fragment slot="header">Key</svelte:fragment>
-    <form class="w-1/2 m-auto mt-20 h-80">
+    <form class="m-auto mt-20 h-80">
       <label class="label">
-        <span class="ml-[7px]">Key To Use</span>
-        <select class="select">
-          <option value="1">placeholder</option>
+        <span class="ml-[12px]">Key To Use</span>
+        <select class="select" bind:value={keyToUse}>
+          {#each keyList as key}
+            <option value={key?.name}>{key?.name}</option>
+          {/each}
         </select>
       </label>
 
       <label class="label mt-4">
-        <span class="ml-[7px]">Input Wallet Password</span>
-        <input class="input" type="password" placeholder="password" />
+        <span class="ml-[12px]">Input Wallet Password</span>
+        <input
+          class="input"
+          type="password"
+          placeholder="password"
+          bind:value={walletPassword}
+        />
       </label>
       <!-- <button class="btn m-auto block mt-2 bg-slate-950">Show address</button> -->
-      <ul class="list mt-4 h-30 overflow-hidden">
+      <!-- <ul class="list mt-4 h-30 overflow-hidden">
         <li>
-          <span class="ml-[7px]">(blockies icon)</span>
-          <span class="flex-auto ml-[7px]">Map Me</span>
+          <span class="ml-[12px]">(blockies icon)</span>
+          <span class="flex-auto ml-[12px]">Map Me</span>
         </li>
-        <!-- ... -->
-      </ul>
+      </ul> -->
     </form>
   </Step>
   <Step class=" bg-slate-950/20 p-6 rounded-lg">
     <svelte:fragment slot="header">Contract</svelte:fragment>
-    <form class="w-1/2 m-auto mt-20 h-80">
+    <form class="m-auto mt-20 h-80">
       <label class="label mt-4">
-        <span class="ml-[7px]">Contract Type</span>
-        <select class="select">
+        <span class="ml-[12px]">Contract Type</span>
+        <select class="select" bind:value={contractType}>
           <option value="1">Vyper</option>
           <option value="2">Stylus</option>
           <option value="3">Solidity</option>
@@ -69,13 +118,13 @@
       </label>
 
       <label class="label mt-4">
-        <span class="ml-[7px]">Path To Contract</span>
-        <input class="input" type="file" multiple />
+        <span class="ml-[12px]">Path To Contract</span>
+        <input class="input" type="file" multiple bind:value={pathToContract} />
       </label>
 
       <label class="label mt-4">
-        <span class="ml-[7px]">EVM Version</span>
-        <select class="select">
+        <span class="ml-[12px]">EVM Version</span>
+        <select class="select" bind:value={evmVersion}>
           <option value="1">Cancun</option>
           <option value="2">Shanghai</option>
           <option value="3">Berlin</option>
@@ -88,9 +137,7 @@
   <Step class="rounded-lg bg-slate-950/20 p-6">
     <svelte:fragment slot="header">Arguments</svelte:fragment>
 
-    <form
-      class="w-1/2 m-auto mt-20 h-80 flex flex-col align-center justify-around"
-    >
+    <form class="m-auto mt-20 h-80 flex flex-col align-center justify-around">
       <!-- <label class="label mt-4"> -->
       <button
         on:click={() => modalStore.trigger(modal)}
@@ -98,21 +145,7 @@
       >
         <i class="fa-solid fa-plus text-4xl"></i>
       </button>
-      <!-- <label class="label mt-4 flex flex-col">
-        <span class="w-fit mx-auto">Arguments</span>
-        <select class="select">
-          <option value="1">mapped args</option>
-        </select>
-      </label> -->
-      <p class="ml-[7px]">Placeholder for mapped args</p>
-      <!-- <span>Arguments</span>
-        <input class="input mt-8" type="text" placeholder="arguments" />
-      </label>
-      <select class="select mt-10">
-        <option value="1">placeholder</option>
-      </select>
-       -->
-      <!-- </label> -->
+      <p class="ml-[12px]">Placeholder for mapped args</p>
     </form>
   </Step>
 </Stepper>

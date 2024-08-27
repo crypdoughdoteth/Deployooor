@@ -38,9 +38,9 @@
 
 <Modal />
 
-<div class="flex pt-2 pb-2 bg-slate-950/50">
+<div class="flex flex-auto pt-2 pb-2 bg-slate-950/50">
   <a class="btn text-xl" href="/deployContracts">Deploooyer | D_D</a>
-  <a class="btn ml-24 bg-slate-950 rounded-lg" href="/deployContracts"
+  <a class="btn ml-6 bg-slate-950 rounded-lg" href="/deployContracts"
     >Deploy Contracts</a
   >
   <a class="btn ml-6 bg-slate-950 rounded-lg" href="/config">Config</a>
