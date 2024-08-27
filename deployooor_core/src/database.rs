@@ -126,7 +126,7 @@ impl Database {
     }
 
     pub fn get_all_keys_metadata(&self) -> Result<Vec<KeyMetadata>, Errors> {
-        let mut statement = self.conn.prepare("SELECT name, path from KeyMetadata")?;
+        let mut statement = self.conn.prepare("SELECT name, path from keys")?;
         let query_map = statement
             .query_map([], |e| {
                 Ok(KeyMetadata {
