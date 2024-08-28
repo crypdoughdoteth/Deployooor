@@ -3,8 +3,9 @@
   import { type NetworkSettings } from "../../DeploymentTypes";
 
   $: providerURL = "";
-  $: etherscanAPIKey = "";
+  $: etherscanAPIKey = null;
   $: name_provider = "";
+
   const handleConfig = () => {
     const networkSettings: NetworkSettings = {
       name: name_provider,

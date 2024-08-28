@@ -8,5 +8,5 @@ export interface ContractDeployment {
 export interface NetworkSettings {
   name: string;
   provider: string;
-  etherscan_api?: string;
+  etherscan_api: string | null;
 }
