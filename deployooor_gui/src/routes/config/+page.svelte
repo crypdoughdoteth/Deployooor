@@ -1,33 +1,33 @@
 <script lang="ts">
   import { invoke } from "@tauri-apps/api/tauri";
   import { type NetworkSettings } from "../../DeploymentTypes";
-  import { stringify } from "querystring";
 
   $: providerURL = "";
   $: etherscanAPIKey = "";
-  $: _name = "";
+  $: name_provider = "";
   const handleConfig = () => {
-    const NetworkSettings: NetworkSettings = {
-      name: _name,
+    const networkSettings: NetworkSettings = {
+      name: name_provider,
       provider: providerURL,
       etherscan_api: etherscanAPIKey,
     };
     invoke("set_config", {
-      NetworkSettings,
+      networkSettings,
+    }).catch((e) => {
+      console.error(e);
     });
   };
 </script>
 
 <form class="w-1/3 m-auto mt-24">
   <label class="label">
-    <label class="label">
-      <span>Name</span>
-      <input class="input" type="text" bind:value={_name} />
-    </label>
+    <span>Name</span>
+    <input class="input" type="text" bind:value={name_provider} />
+  </label>
+  <label class="label">
     <span>Provider URL</span>
     <input class="input" type="text" bind:value={providerURL} />
   </label>
-
   <label class="label mt-4">
     <span>Etherscan API Key</span>
     <input class="input" type="text" bind:value={etherscanAPIKey} />
