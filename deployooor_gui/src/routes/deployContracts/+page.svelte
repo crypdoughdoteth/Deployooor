@@ -5,7 +5,7 @@
   import { invoke } from "@tauri-apps/api/tauri";
   import { type ModalSettings } from "@skeletonlabs/skeleton";
   import { onMount } from "svelte";
-  import { type ContractDeployment } from "./DeploymentTypes";
+  import { type ContractDeployment } from "../../DeploymentTypes";
 
   $: keyList = [];
   $: keyToUse = "";
@@ -28,7 +28,7 @@
     path: pathToContract,
     private_key: privateKey,
   };
-
+  // console.log(invoke("get_config"));
   function onCompleteHandler(e: Event): void {
     e.preventDefault();
     invoke("deploy_contract", { ContractDeployment }).catch((e) => {
