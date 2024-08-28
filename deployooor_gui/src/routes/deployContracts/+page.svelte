@@ -21,14 +21,14 @@
 
   function onCompleteHandler(e: Event): void {
     e.preventDefault();
-    console.log(arguements)
-
-  const ContractDeployment:ContractDeployment = {
+    console.log(arguements);
+  }
+  const ContractDeployment: ContractDeployment = {
     provider: keyToUse,
     args: arguements,
     path: pathToContract,
     private_key: keyToUse,
-  }
+  };
   const handleStep = () => {
     console.log("step");
   };
@@ -44,7 +44,7 @@
     body: "Provide your Arguments",
     value: "",
     valueAttr: { type: "text", minlength: 3, maxlength: 100, required: true },
-    response: (r: string) => (arguements = r),
+    response: (r: string) => (arguements = r.split(" ")),
   };
 </script>
 
