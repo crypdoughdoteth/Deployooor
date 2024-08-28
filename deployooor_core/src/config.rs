@@ -1,7 +1,12 @@
-use std::{fs::File, io::BufReader, path::{Path, PathBuf}};
+use std::{
+    fs::File,
+    io::BufReader,
+    path::{Path, PathBuf},
+};
 
 use serde::{Deserialize, Serialize};
 use serde_json::to_writer_pretty;
+use url::Url;
 
 use crate::errors::Errors;
 
@@ -19,16 +24,27 @@ impl Default for Config {
 #[derive(Serialize, Deserialize)]
 pub struct NetworkSettings {
     name: String,
-    provider: String,
-    etherscan_api: Option<String>,
+    provider: Url,
+    etherscan_api: Option<Url>,
 }
 
 impl NetworkSettings {
-    pub fn new(name: String, provider: String, etherscan_api: Option<String>) -> NetworkSettings {
-        NetworkSettings {
-            name,
-            provider,
-            etherscan_api,
+    pub fn from_str(
+        name: String,
+        provider: String,
+        etherscan_api: Option<String>,
+    ) -> Result<NetworkSettings, Errors> {
+        match etherscan_api {
+            Some(k) => Ok(NetworkSettings {
+                name,
+                provider: provider.parse()?,
+                etherscan_api: Some(k.parse()?),
+            }),
+            None => Ok(NetworkSettings {
+                name,
+                provider: provider.parse()?,
+                etherscan_api: None,
+            }),
         }
     }
 }
@@ -62,6 +78,4 @@ impl Config {
         let conf: Config = serde_json::from_reader(reader)?;
         Ok(conf)
     }
-
-
 }
