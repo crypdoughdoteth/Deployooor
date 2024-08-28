@@ -19,10 +19,9 @@ pub struct Deployment {
     pub verified: bool,
 }
 
-
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct KeyMetadata {
-    pub name: String, 
+    pub name: String,
     pub path: String,
 }
 
@@ -34,7 +33,7 @@ impl Default for Database {
 
 impl Database {
     pub fn init(path: &str) -> Result<Database, Errors> {
-        let conn = Connection::open(path).unwrap();
+        let conn = Connection::open(path)?;
 
         conn.execute(
             "CREATE TABLE IF NOT EXISTS deployments
@@ -89,7 +88,7 @@ impl Database {
         let deployments: Vec<Deployment> = statement
             .query_map([offset], |row| {
                 Ok(Deployment {
-                    sc_name: row.get_unwrap(0),
+                    sc_name: row.get(0)?,
                     deployer_address: row.get(1)?,
                     deploy_date: row.get(2)?,
                     sc_address: row.get(3)?,

@@ -1,3 +1,4 @@
+use url::ParseError;
 use alloy::{signers::{local::LocalSignerError, k256::ecdsa}, transports::{RpcError, TransportErrorKind}};
 use thiserror::Error;
 use tokio::task::JoinError;
@@ -5,6 +6,8 @@ use vyper_rs::vyper_errors::VyperErrors;
 
 #[derive(Error, Debug)]
 pub enum Errors {
+    #[error(transparent)]
+    ProviderParseError(#[from] ParseError),
     #[error("No contract address")]
     MissingContractAddress,
     #[error(transparent)]

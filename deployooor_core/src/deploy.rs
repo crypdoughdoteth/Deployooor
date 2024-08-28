@@ -203,15 +203,14 @@ impl<'a> Deploy<'a> {
     ) -> Result<Self, Errors> {
         let signer: PrivateKeySigner = key.parse()?;
         let wallet = EthereumWallet::from(signer);
-
-        let rpc_url = provider.parse().unwrap();
+        let rpc_url = provider.parse()?;
         let provider = ProviderBuilder::new()
             .with_recommended_fillers()
             .wallet(wallet)
             .on_http(rpc_url);
 
         let contract =
-            Contract::from_str(contract_path).unwrap();
+            Contract::from_str(contract_path)?;
 
         Ok(Deploy {
             provider,
