@@ -14,23 +14,37 @@
   $: pathToContract = "";
   $: evmVersion = "";
   $: arguements = [];
+
+  $: privateKey = "";
+  //get key by name
   onMount(async () => {
     keyList = await invoke("list_keys");
     console.log(keyList);
   });
 
-  function onCompleteHandler(e: Event): void {
-    e.preventDefault();
-    console.log(arguements);
-  }
   const ContractDeployment: ContractDeployment = {
     provider: keyToUse,
     args: arguements,
     path: pathToContract,
-    private_key: keyToUse,
+    private_key: privateKey,
   };
-  const handleStep = () => {
-    console.log("step");
+
+  function onCompleteHandler(e: Event): void {
+    e.preventDefault();
+    invoke("deploy_contract", { ContractDeployment }).catch((e) => {
+      console.error(e);
+    });
+  }
+  const handleStep = (e: any) => {
+    if (e.detail.step === 0) {
+      invoke("get_key_by_name", {
+        name: keyToUse,
+        password: walletPassword,
+      }).then((r) => {
+        privateKey = r.pk;
+      });
+    }
+    console.log(privateKey);
   };
   const modalStore = getModalStore();
   const formData = {
@@ -49,7 +63,7 @@
 </script>
 
 <Stepper
-  on:next={() => handleStep()}
+  on:next={(e) => handleStep(e)}
   on:complete={onCompleteHandler}
   class="w-2/3 m-auto mt-24 rounded-sm"
 >
