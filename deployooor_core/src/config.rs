@@ -59,9 +59,15 @@ impl Config {
     }
 
     pub fn from_default_file() -> Result<Config, Errors> {
-        let file: File = File::open("./vyper_deployer_config.json")?;
+        let file: File = if Path::new("./vyper_deployer_config.json").exists() {
+            File::open("./vyper_deployer_config.json")?
+        } else {
+            File::create_new("./vyper_deployer_config.json")?;
+            File::open("./vyper_deployer_config.json")?
+        };
+
         let reader: BufReader<File> = BufReader::new(file);
-        let conf: Config = serde_json::from_reader(reader)?;
+        let conf: Config = serde_json::from_reader(reader).unwrap_or_default();
         Ok(conf)
     }
 
@@ -73,7 +79,13 @@ impl Config {
     }
 
     pub fn from_file(path: &Path) -> Result<Config, Errors> {
-        let file: File = File::open(path)?;
+        let file: File = if Path::new(path).exists() {
+            File::open(path)?
+        } else {
+            File::create_new(path)?;
+            File::open(path)?
+        };
+
         let reader: BufReader<File> = BufReader::new(file);
         let conf: Config = serde_json::from_reader(reader)?;
         Ok(conf)
