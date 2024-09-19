@@ -1,5 +1,3 @@
-use std::{collections::HashMap, io::stdout, path::PathBuf};
-
 use color_eyre::{config::HookBuilder, Result};
 use deployooor_core::config::Config;
 use ratatui::{
@@ -9,30 +7,46 @@ use ratatui::{
         terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
         ExecutableCommand,
     },
-    layout::{Constraint, Layout, Rect},
-    style::{Modifier, Style, Stylize},
     terminal::Terminal,
-    text::Text,
-    widgets::{Block, List, ListDirection, ListState, Padding},
-    Frame,
+    widgets::ListState,
 };
-use ui::Screen;
-use utils::center;
+use settings::NetworkSettingsState;
+use std::{collections::HashMap, io::stdout, path::PathBuf};
 
-pub mod ui;
+pub mod home;
+pub mod settings;
 pub mod utils;
 
 #[derive(Default)]
-struct App {
-    state: AppState,
-    wallet_names: HashMap<String, PathBuf>,
-    config: Config,
-    screen: Screen,
-    home_list: ListState,
+pub struct App {
+    pub state: AppState,
+    pub wallet_names: HashMap<String, PathBuf>,
+    pub config: Config,
+    pub screen: Screen,
+    pub home_list: ListState,
+    pub editing: Mode,
+    pub network_settings_state: NetworkSettingsState,
+    pub settings_list: ListState,
+}
+
+#[derive(Default, Debug, Clone, Copy, Eq, PartialEq, Ord, PartialOrd)]
+pub enum Mode {
+    #[default]
+    Normal,
+    Insert,
+}
+
+#[derive(Default, Clone, Copy)]
+pub enum Screen {
+    #[default]
+    Home,
+    Settings,
+    Deploy,
+    Logs,
 }
 
 #[derive(Default, Clone, Copy, PartialEq, Eq)]
-enum AppState {
+pub enum AppState {
     #[default]
     Running,
     Quitting,
@@ -56,47 +70,18 @@ impl App {
             config,
             screen: Screen::Home,
             home_list: ListState::default(),
+            editing: Mode::default(),
+            network_settings_state: NetworkSettingsState::default(),
+            settings_list: ListState::default(),
         }
     }
+
     fn run(&mut self, terminal: &mut Terminal<impl Backend>) -> Result<()> {
         while self.state == AppState::Running {
             self.draw(terminal)?;
             self.handle_events()?;
         }
         Ok(())
-    }
-
-    fn render_home_list(&mut self, frame: &mut Frame, area: Rect) {
-        use Constraint::{Length, Max, Min, Percentage};
-        let vertical = Layout::vertical([Max(8), Min(8), Length(2)]);
-        let [_, inner_area, _] = vertical.areas(area);
-
-        let items = [
-            Text::from("Deploy Vyper               -    V").centered(),
-            Text::from("Deploy Solidity            -    S").centered(),
-            Text::from("Deploy Stylus              -    A").centered(),
-            Text::from("View Deployment Logs       -    L").centered(),
-            Text::from("Create Keystore            -    K").centered(),
-            Text::from("Settings                   -    C").centered(),
-        ];
-        let area = center(
-            inner_area,
-            Constraint::Percentage(50),
-            Constraint::Length(10),
-        );
-        let list = List::new(items)
-            .block(
-                Block::bordered()
-                    .white()
-                    .title("Get Started")
-                    .padding(Padding::new(0, 0, 1, 0)),
-            )
-            .highlight_style(Style::default().add_modifier(Modifier::ITALIC))
-            .highlight_symbol(">>")
-            .repeat_highlight_symbol(true)
-            .direction(ListDirection::TopToBottom);
-
-        frame.render_stateful_widget(list, area, &mut self.home_list);
     }
 
     fn draw(&mut self, terminal: &mut Terminal<impl Backend>) -> Result<()> {
@@ -108,7 +93,9 @@ impl App {
                     // render list
                     self.render_home_list(frame, frame.size());
                 }
-                Screen::Settings => {}
+                Screen::Settings => {
+                    self.render_config_list(frame, frame.size());
+                }
                 Screen::Deploy => todo!(),
                 Screen::Logs => todo!(),
             }
@@ -131,23 +118,17 @@ impl App {
         if let Event::Key(key) = event::read()? {
             if key.kind == KeyEventKind::Press {
                 match key.code {
+                    KeyCode::Enter => {
+                        if let Some(selected) = self.home_list.selected() {
+
+                            // if there is a selected element, get index
+                            // get screen to transition to from index
+                        }
+                    }
                     KeyCode::Char('q') => self.quit(),
                     KeyCode::Up => self.home_list.select_previous(),
                     KeyCode::Down => self.home_list.select_next(),
                     KeyCode::Char('c') => self.screen = Screen::Settings,
-                    _ => {}
-                }
-            }
-        }
-
-        Ok(())
-    }
-
-    fn handle_settings_events(&mut self) -> std::io::Result<()> {
-        if let Event::Key(key) = event::read()? {
-            if key.kind == KeyEventKind::Press {
-                match key.code {
-                    KeyCode::Char('q') => self.screen = Screen::Home,
                     _ => {}
                 }
             }
@@ -161,11 +142,6 @@ impl App {
     }
 }
 
-// impl Widget for &mut App {
-//     fn render(self, area: Rect, buf: &mut Buffer) {
-//         self.screen.render(area, buf);
-//     }
-// }
 fn init_error_hooks() -> color_eyre::Result<()> {
     let (panic, error) = HookBuilder::default().into_hooks();
     let panic = panic.into_panic_hook();

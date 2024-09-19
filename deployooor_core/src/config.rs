@@ -1,4 +1,5 @@
 use std::{
+    fmt::{self, Display, Formatter},
     fs::File,
     io::BufReader,
     path::{Path, PathBuf},
@@ -12,12 +13,16 @@ use crate::errors::Errors;
 
 #[derive(Serialize, Deserialize)]
 pub struct Config {
-    networks: Vec<NetworkSettings>,
+    pub networks: Vec<NetworkSettings>,
+    path: PathBuf,
 }
 
 impl Default for Config {
     fn default() -> Self {
-        Self { networks: vec![] }
+        Self {
+            networks: vec![],
+            path: PathBuf::from("./"),
+        }
     }
 }
 
@@ -28,20 +33,26 @@ pub struct NetworkSettings {
     etherscan_api: Option<Url>,
 }
 
+impl Display for NetworkSettings {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "Network: {}", self.name,)
+    }
+}
+
 impl NetworkSettings {
     pub fn from_str(
-        name: String,
-        provider: String,
-        etherscan_api: Option<String>,
+        name: &str,
+        provider: &str,
+        etherscan_api: Option<&str>,
     ) -> Result<NetworkSettings, Errors> {
         match etherscan_api {
             Some(k) => Ok(NetworkSettings {
-                name,
+                name: name.to_string(),
                 provider: provider.parse()?,
                 etherscan_api: Some(k.parse()?),
             }),
             None => Ok(NetworkSettings {
-                name,
+                name: name.to_string(),
                 provider: provider.parse()?,
                 etherscan_api: None,
             }),
@@ -50,8 +61,8 @@ impl NetworkSettings {
 }
 
 impl Config {
-    pub fn new(networks: Vec<NetworkSettings>) -> Config {
-        Config { networks }
+    pub fn new(networks: Vec<NetworkSettings>, path: PathBuf) -> Config {
+        Config { networks, path }
     }
 
     pub fn push(&mut self, network: NetworkSettings) {
