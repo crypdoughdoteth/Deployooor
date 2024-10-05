@@ -12,7 +12,9 @@ strum = "0.26.3"
 color-eyre = "0.6.3"
 deployooor_core = {path = "../deployooor_core/"}
 arboard = "3.4.1"
+rpassword = "7.3.1"
 url = "2.5.2"
 rayon = "1.10.0"
 serde = { version = "1.0.210", features = ["derive"] }
 serde_json = "1.0.128"
+tokio-stream = "0.1.16"

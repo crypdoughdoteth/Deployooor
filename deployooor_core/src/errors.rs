@@ -1,7 +1,10 @@
-use url::ParseError;
-use alloy::{signers::{local::LocalSignerError, k256::ecdsa}, transports::{RpcError, TransportErrorKind}};
+use alloy::{
+    signers::{k256::ecdsa, local::LocalSignerError},
+    transports::{RpcError, TransportErrorKind},
+};
 use thiserror::Error;
 use tokio::task::JoinError;
+use url::ParseError;
 use vyper_rs::vyper_errors::VyperErrors;
 
 #[derive(Error, Debug)]
@@ -45,5 +48,5 @@ pub enum Errors {
     #[error(transparent)]
     JoinError(#[from] JoinError),
     #[error(transparent)]
-    RusqliteError(#[from] rusqlite::Error)
+    RusqliteError(#[from] rusqlite::Error),
 }

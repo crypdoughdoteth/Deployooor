@@ -1,7 +1,7 @@
 use std::{
     fmt::{self, Display, Formatter},
     fs::File,
-    io::BufReader,
+    io::{BufReader, Read},
     path::{Path, PathBuf},
 };
 
@@ -69,17 +69,17 @@ impl Config {
         self.networks.push(network);
     }
 
-    pub fn from_default_file() -> Result<Config, Errors> {
-        let file: File = if Path::new("./vyper_deployer_config.json").exists() {
-            File::open("./vyper_deployer_config.json")?
+    pub fn from_default_file() -> Config {
+        if let Ok(config) = File::open("./deployooor-config.json") {
+            let mut reader = BufReader::new(config);
+            let mut buf = String::new();
+            reader.read_to_string(&mut buf).unwrap();
+            let networks = serde_json::from_str::<Vec<NetworkSettings>>(&buf).unwrap();
+            let config = Config::new(networks, PathBuf::from("./deployooor-config.json"));
+            config
         } else {
-            File::create_new("./vyper_deployer_config.json")?;
-            File::open("./vyper_deployer_config.json")?
-        };
-
-        let reader: BufReader<File> = BufReader::new(file);
-        let conf: Config = serde_json::from_reader(reader).unwrap_or_default();
-        Ok(conf)
+            Config::default()
+        }
     }
 
     pub fn set_config(&self) -> Result<(), Errors> {

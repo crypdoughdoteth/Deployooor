@@ -31,6 +31,7 @@ impl Widget for Screen {
         match self {
             Screen::Home => self.render_home(area, buf),
             Screen::Settings => self.render_settings(area, buf),
+            Screen::Keystore => self.render_keystores(area, buf),
             Screen::Deploy => todo!(),
             Screen::Logs => todo!(),
         }

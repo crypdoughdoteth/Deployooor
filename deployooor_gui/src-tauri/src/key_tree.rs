@@ -1,4 +1,7 @@
-use deployooor_core::{database::{Database, KeyMetadata}, keys::Keys};
+use deployooor_core::{
+    database::{Database, KeyMetadata},
+    keys::Keys,
+};
 use serde::{Deserialize, Serialize};
 use std::{
     collections::HashMap,
@@ -84,10 +87,13 @@ pub fn load_keys_to_state() -> Result<HashMap<String, PathBuf>, String> {
         .get_all_keys_metadata()
         .map_err(|e| e.to_string())?
         .into_iter()
-        .fold(HashMap::new(), |mut acc: HashMap<String, PathBuf>, x: KeyMetadata| {
-            acc.insert(x.name, PathBuf::from(x.path));
-            acc
-        }))
+        .fold(
+            HashMap::new(),
+            |mut acc: HashMap<String, PathBuf>, x: KeyMetadata| {
+                acc.insert(x.name, PathBuf::from(x.path));
+                acc
+            },
+        ))
 }
 
 // Remove key from tree and database

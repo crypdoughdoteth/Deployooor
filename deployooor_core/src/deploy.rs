@@ -209,8 +209,7 @@ impl<'a> Deploy<'a> {
             .wallet(wallet)
             .on_http(rpc_url);
 
-        let contract =
-            Contract::from_str(contract_path)?;
+        let contract = Contract::from_str(contract_path)?;
 
         Ok(Deploy {
             provider,

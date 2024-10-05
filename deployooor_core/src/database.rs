@@ -45,12 +45,15 @@ impl Database {
                 network TEXT NOT NULL,
                 fee TEXT NOT NULL,
                 verified BOOL NOT NULL
-            );
+            );",
+            (),
+        )?;
 
-            CREATE TABLE IF NOT EXISTS keys 
+        conn.execute(
+            "CREATE TABLE IF NOT EXISTS keys 
             (
                 name TEXT NOT NULL PRIMARY KEY,
-                path TEXT UNIQUE NOT NULL
+                path TEXT NOT NULL
             );",
             (),
         )?;
@@ -104,7 +107,7 @@ impl Database {
     pub fn record_key_metadata(&self, path: &Path, name: &str) -> Result<(), Errors> {
         self.conn.execute(
             "INSERT INTO keys (name, path) VALUES (?1, ?2)",
-            (path.to_str().ok_or_else(|| Errors::FsError)?, name),
+            (name, path.to_str().ok_or_else(|| Errors::FsError)?),
         )?;
         Ok(())
     }

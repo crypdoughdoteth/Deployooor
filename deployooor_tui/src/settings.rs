@@ -176,7 +176,7 @@ impl App {
                     KeyCode::Char('d') => {
                         if let Some(selected) = self.settings_list.selected() {
                             self.config.networks.swap_remove(selected);
-                            let file = std::fs::File::create("./").unwrap();
+                            let file = std::fs::File::create("./deployooor-config.json").unwrap();
                             let mut file = BufWriter::new(file);
 
                             let res = file.write_all(
@@ -204,7 +204,8 @@ impl App {
                                 self.config.push(ns);
                                 self.network_settings_state = NetworkSettingsState::default();
 
-                                let file = std::fs::File::create("./").unwrap();
+                                let file =
+                                    std::fs::File::create("./deployooor-config.json").unwrap();
                                 let mut file = BufWriter::new(file);
 
                                 let res = file.write_all(

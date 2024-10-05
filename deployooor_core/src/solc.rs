@@ -20,7 +20,12 @@ impl<'a> Contract<'a> {
             }
 
             let out = String::from_utf8_lossy(&output.stdout).to_string();
-            Ok(out.split("Binary:\n").last().unwrap().trim_end().to_string())
+            Ok(out
+                .split("Binary:\n")
+                .last()
+                .unwrap()
+                .trim_end()
+                .to_string())
         });
 
         let abi: tokio::task::JoinHandle<Result<String, Errors>> = tokio::spawn(async move {
