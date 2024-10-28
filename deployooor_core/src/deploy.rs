@@ -176,16 +176,19 @@ pub struct ConstructorArguments {
 }
 
 impl ConstructorArguments {
-    pub fn new(types: &[&str], values: &[&str]) -> Self {
-        let (sol_types, values) = Itertools::intersperse(types.iter().zip(values), (&",", &","))
-            .fold(
-                (String::new(), String::new()),
-                |(mut val, mut ty), (t, v)| {
-                    ty.push_str(t);
-                    val.push_str(v);
-                    (ty, val)
-                },
-            );
+    pub fn new(types: &[String], values: &[String]) -> Self {
+        let (sol_types, values) = Itertools::intersperse(
+            types.iter().zip(values),
+            (&",".to_string(), &",".to_string()),
+        )
+        .fold(
+            (String::new(), String::new()),
+            |(mut val, mut ty), (t, v)| {
+                ty.push_str(t);
+                val.push_str(v);
+                (ty, val)
+            },
+        );
 
         ConstructorArguments {
             sol_type: format!("({})", sol_types),

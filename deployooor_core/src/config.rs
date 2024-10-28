@@ -28,9 +28,9 @@ impl Default for Config {
 
 #[derive(Serialize, Deserialize)]
 pub struct NetworkSettings {
-    name: String,
-    provider: Url,
-    etherscan_api: Option<Url>,
+    pub name: String,
+    pub provider: Url,
+    pub etherscan_api: Option<Url>,
 }
 
 impl Display for NetworkSettings {

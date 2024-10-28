@@ -9,7 +9,6 @@ use ratatui::{
     widgets::{Block, List, ListDirection, Padding, Paragraph, Widget},
     Frame,
 };
-use rayon::prelude::*;
 use std::fmt::{self, Display, Formatter};
 use std::io::{BufWriter, Write};
 use Constraint::{Length, Min, Percentage};
@@ -19,7 +18,6 @@ pub struct NetworkSettingsState {
     pub name: String,
     pub provider: String,
     pub etherscan_api_key: Option<String>,
-    pub editing_index: Option<usize>,
     pub editing: NetworkSettingsField,
     pub err_msg: Option<String>,
     pub unsaved_changes: bool,
@@ -47,7 +45,7 @@ impl App {
         let items: Vec<Text<'_>> = self
             .config
             .networks
-            .par_iter()
+            .iter()
             .map(|e| Text::from(e.to_string()))
             .collect();
 
@@ -59,7 +57,7 @@ impl App {
                         .bold()
                         .title("Add a network")
                         .title_bottom(
-                            "<ESC> - Stop Editing | N - Edit Network | V - Edit Etherscan | P - Edit Provider | <F1> - Paste",
+                            "<ESC>-Stop Editing|N-Edit Network|V-Edit Etherscan|P-Edit Provider|<F1>-Paste",
                         ).title_alignment(Alignment::Center),
                 )
                 .render(bottom, frame.buffer_mut());

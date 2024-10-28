@@ -32,7 +32,7 @@ impl Widget for Screen {
             Screen::Home => self.render_home(area, buf),
             Screen::Settings => self.render_settings(area, buf),
             Screen::Keystore => self.render_keystores(area, buf),
-            Screen::Deploy => todo!(),
+            Screen::Deploy => self.render_deployment(area, buf),
             Screen::Logs => todo!(),
         }
     }
@@ -49,16 +49,14 @@ const WELCOME: &'static str = "
 impl App {
     pub fn render_home_list(&mut self, frame: &mut Frame, area: Rect) {
         use Constraint::{Length, Max, Min};
-        let vertical = Layout::vertical([Max(8), Min(8), Length(2)]);
+        let vertical = Layout::vertical([Max(8), Min(8), Max(2)]);
         let [_, inner_area, _] = vertical.areas(area);
 
         let items = [
-            Text::from("Deploy Vyper               -    V").centered(),
-            Text::from("Deploy Solidity            -    S").centered(),
-            Text::from("Deploy Stylus              -    A").centered(),
+            Text::from("Deploy                     -    D").centered(),
             Text::from("View Deployment Logs       -    L").centered(),
             Text::from("Create Keystore            -    K").centered(),
-            Text::from("Settings                   -    C").centered(),
+            Text::from("Networks                   -    N").centered(),
         ];
         let area = crate::utils::center(
             inner_area,
@@ -83,7 +81,7 @@ impl App {
 
 impl Screen {
     fn render_home(self, area: Rect, buf: &mut ratatui::prelude::Buffer) {
-        let vertical = Layout::vertical([Max(8), Min(8), Length(2)]);
+        let vertical = Layout::vertical([Max(8), Min(8), Max(2)]);
         let [header_area, _, footer_area] = vertical.areas(area);
 
         Paragraph::new(WELCOME).centered().render(header_area, buf);

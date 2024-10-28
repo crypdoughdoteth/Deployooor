@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Serialize, Deserialize, Clone)]
 pub struct ContractDeployment<'a> {
     provider: &'a str,
-    args: Option<(Vec<&'a str>, Vec<&'a str>)>,
+    args: Option<(Vec<String>, Vec<String>)>,
     path: &'a str,
     private_key: &'a str,
 }

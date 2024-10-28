@@ -1,6 +1,5 @@
-use std::path::Path;
-
 use crate::{App, Mode, Screen};
+use alloy::signers::local::LocalSigner;
 use deployooor_core::keys::Keys;
 use ratatui::{
     crossterm::event::{self, Event, KeyCode, KeyEventKind},
@@ -10,8 +9,7 @@ use ratatui::{
     widgets::{Block, List, ListDirection, Padding, Paragraph, Widget},
     Frame,
 };
-use tokio_stream::{self as stream, StreamExt};
-use rayon::prelude::*;
+use std::{path::Path, str::FromStr};
 use Constraint::{Length, Min, Percentage};
 
 #[derive(Default, Debug, Eq, PartialEq)]
@@ -40,8 +38,13 @@ impl App {
         let [top, _, bottom] = layout2.areas(inner_area);
         let items: Vec<Text<'_>> = self
             .wallet_names
-            .par_iter()
-            .map(|e| Text::from(e.0.to_string()))
+            .iter()
+            .map(|e| {
+                let signer = LocalSigner::from_str(&e.1).unwrap();
+                let address = signer.address();
+                let display = format!("{} | {}", e.0, address);
+                Text::from(display)
+            })
             .collect();
 
         match (self.editing, &self.keystore_state.err_msg) {
@@ -167,30 +170,26 @@ impl App {
                     KeyCode::Up => self.keystore_list.select_previous(),
                     KeyCode::Down => self.keystore_list.select_next(),
                     KeyCode::Enter => {
-                        if self.wallet_names.get(&self.keystore_state.name).is_some() {
-                            self.keystore_state.err_msg = Some("Key already exists".to_string());
-                        } else {
-                            Keys::new(
+                        Keys::new(
+                            &Path::new("./").canonicalize().unwrap(),
+                            &self.keystore_state.name,
+                            &self.password,
+                        )
+                        .unwrap();
+                        self.db
+                            .record_key_metadata(
                                 &Path::new("./").canonicalize().unwrap(),
                                 &self.keystore_state.name,
-                                &self.password,
                             )
                             .unwrap();
-                            self.db
-                                .record_key_metadata(
-                                    &Path::new("./").canonicalize().unwrap(),
-                                    &self.keystore_state.name,
-                                )
-                                .unwrap();
-                            let key = Keys::decrypt_to_string(
-                                Path::new(&format!("./{}", &self.keystore_state.name)),
-                                &self.password,
-                            )
-                            .unwrap();
-                            self.wallet_names
-                                .insert(self.keystore_state.name.to_string(), key);
-                            self.keystore_state.name.clear();
-                        }
+                        let key = Keys::decrypt_to_string(
+                            Path::new(&format!("./{}", &self.keystore_state.name)),
+                            &self.password,
+                        )
+                        .unwrap();
+                        self.wallet_names
+                            .push((self.keystore_state.name.to_string(), key));
+                        self.keystore_state.name.clear();
                     }
 
                     _ => {}
